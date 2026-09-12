@@ -1,0 +1,113 @@
+<div class="dashboard">
+
+  <div class="dashboard-header">
+    <div>
+      <p class="eyebrow">MINI BANKING SYSTEM</p>
+      <h1>GOOD EVENING, ANISHA</h1>
+      <p class="subtitle">
+        Here's your banking overview.
+      </p>
+    </div>
+    <div class="user-badge">
+      AK
+    </div>
+  </div>
+
+  <!-- Welcome Card -->
+  <div class="welcome-card">
+    <p class="card-label">
+      MINI BANKING SYSTEM
+    </p>
+    <h2>
+      Welcome to your banking dashboard
+    </h2>
+    <p>
+      Manage customers, accounts, transactions and beneficiaries
+      from one place.
+    </p>
+  </div>
+
+  <!-- Statistics -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">C</div>
+      <div>
+        <p>Customers</p>
+        <h2>{{ stats.customers }}</h2>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">A</div>
+      <div>
+        <p>Accounts</p>
+        <h2>{{ stats.accounts }}</h2>
+      </div>
+    </div>
+
+
+    <div class="stat-card">
+      <div class="stat-icon">T</div>
+      <div>
+        <p>Transactions</p>
+        <h2>{{ stats.transactions }}</h2>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">B</div>
+      <div>
+        <p>Beneficiaries</p>
+        <h2>{{ stats.beneficiaries }}</h2>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Balance -->
+  <div class="balance-card">
+    <div>
+      <p>Total Balance</p>
+      <h2>{{ stats.balance | currency:'INR' }}</h2>
+    </div>
+    <div class="balance-icon">
+      ₹
+    </div>
+  </div>
+  <p class="error" *ngIf="error">{{ error }}</p>
+
+  <!-- Quick Actions -->
+  <div class="section-header">
+    <div>
+      <p class="eyebrow">QUICK ACTIONS</p>
+      <h2>Manage your banking</h2>
+    </div>
+  </div>
+
+  <div class="quick-actions">
+    <a routerLink="/customers" class="action-card">
+      <span>01</span>
+      <h3>Customers</h3>
+      <p>Manage your customers</p>
+    </a>
+
+    <a routerLink="/accounts" class="action-card">
+      <span>02</span>
+      <h3>Accounts</h3>
+      <p>View bank accounts</p>
+    </a>
+
+    <a routerLink="/beneficiaries" class="action-card">
+      <span>03</span>
+      <h3>Beneficiaries</h3>
+      <p>Manage beneficiaries</p>
+    </a>
+
+    <a routerLink="/accounts/1/transactions" class="action-card">
+      <span>04</span>
+      <h3>Transactions</h3>
+      <p>View transactions</p>
+    </a>
+  </div>
+
+</div>

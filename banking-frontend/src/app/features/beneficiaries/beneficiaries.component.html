@@ -1,0 +1,14 @@
+<section class="feature-page">
+  <div class="page-heading"><div><p class="eyebrow">PAYEE DIRECTORY</p><h1>Beneficiaries</h1><p class="muted">Maintain the people and accounts you can transfer to.</p></div></div>
+  <div class="content-grid">
+    <form class="panel form-panel" (ngSubmit)="createBeneficiary()" #beneficiaryForm="ngForm">
+      <h2>Add beneficiary</h2>
+      <label>Name<input name="name" [(ngModel)]="form.name" required placeholder="Beneficiary name"></label>
+      <label>Account number<input name="accountNumber" [(ngModel)]="form.accountNumber" required></label>
+      <label>Bank name<input name="bankName" [(ngModel)]="form.bankName" required></label>
+      <label>Customer<select name="customerId" [(ngModel)]="form.customerId" required><option [ngValue]="0" disabled>Select customer</option><option *ngFor="let customer of customers" [ngValue]="customer.id">{{ customer.name }} (#{{ customer.id }})</option></select></label>
+      <button class="primary-button" type="submit" [disabled]="beneficiaryForm.invalid || saving">{{ saving ? 'Saving...' : 'Add beneficiary' }}</button><p class="success" *ngIf="success">{{ success }}</p><p class="error" *ngIf="error">{{ error }}</p>
+    </form>
+    <div class="panel"><div class="panel-heading"><h2>Beneficiary list</h2><button class="secondary-button" type="button" (click)="load()">Refresh</button></div><p class="muted" *ngIf="loading">Loading beneficiaries...</p><p class="muted" *ngIf="!loading && !beneficiaries.length">No beneficiaries found.</p><div class="table-wrap" *ngIf="beneficiaries.length"><table><thead><tr><th>Name</th><th>Account</th><th>Bank</th><th>Customer</th><th></th></tr></thead><tbody><tr *ngFor="let beneficiary of beneficiaries"><td>{{ beneficiary.name }}</td><td>{{ beneficiary.accountNumber }}</td><td>{{ beneficiary.bankName }}</td><td>#{{ beneficiary.customerId }}</td><td><button class="danger-button" type="button" (click)="remove(beneficiary)">Delete</button></td></tr></tbody></table></div><p class="error" *ngIf="error">{{ error }}</p></div>
+  </div>
+</section>

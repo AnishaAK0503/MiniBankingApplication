@@ -1,0 +1,71 @@
+<button
+  class="menu-toggle"
+  type="button"
+  (click)="toggle()"
+  [attr.aria-expanded]="isOpen"
+  aria-controls="main-navigation"
+  aria-label="Toggle navigation menu">
+  <span></span>
+  <span></span>
+  <span></span>
+</button>
+
+<div class="sidebar-backdrop" *ngIf="isOpen" (click)="close()"></div>
+
+<aside class="sidebar" [class.open]="isOpen" id="main-navigation">
+
+  <div class="logo">
+    <span class="logo-icon">◈</span>
+    <span>MINIBANK</span>
+  </div>
+
+  <nav class="navigation">
+
+    <a
+      routerLink="/dashboard"
+      routerLinkActive="active"
+      class="nav-item"
+      (click)="close()">
+      <span>⌂</span>
+      Dashboard
+    </a>
+
+    <a
+      routerLink="/customers"
+      routerLinkActive="active"
+      class="nav-item"
+      (click)="close()">
+      <span>◉</span>
+      Customers
+    </a>
+
+    <a
+      routerLink="/accounts"
+      routerLinkActive="active"
+      class="nav-item"
+      (click)="close()">
+      <span>▣</span>
+      Accounts
+    </a>
+
+    <a
+      routerLink="/transactions"
+      routerLinkActive="active"
+      class="nav-item"
+      (click)="close()">
+      <span>↔</span>
+      Transactions
+    </a>
+
+    <a
+      routerLink="/beneficiaries"
+      routerLinkActive="active"
+      class="nav-item"
+      (click)="close()">
+      <span>♙</span>
+      Beneficiaries
+    </a>
+
+  </nav>
+
+</aside>
