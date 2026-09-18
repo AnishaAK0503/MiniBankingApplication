@@ -1,14 +1,57 @@
 <section class="feature-page">
   <div class="page-heading"><div><p class="eyebrow">ACCOUNT MANAGEMENT</p><h1>Accounts</h1><p class="muted">Create accounts and open transaction history.</p></div></div>
   <div class="content-grid">
-    <form class="panel form-panel" (ngSubmit)="createAccount()" #accountForm="ngForm">
+    <div class="panel customer-request-panel" *ngIf="permissions.canRequestAccount">
+      <div class="panel-heading"><div><h2>My Account Requests</h2><p class="muted">Request a new account for your own customer profile.</p></div><button class="secondary-button" type="button" (click)="showRequestForm = !showRequestForm">{{ showRequestForm ? 'Close' : 'Request new account' }}</button></div>
+      <form class="form-panel" *ngIf="showRequestForm" (ngSubmit)="submitAccountRequest()">
+        <label>Account type<select name="requestType" [(ngModel)]="requestForm.accountType" required><option value="SAVINGS">Savings Account</option><option value="CURRENT">Current Account</option></select></label>
+        <label>Remarks<textarea name="remarks" rows="3" [(ngModel)]="requestForm.remarks" placeholder="Optional reason"></textarea></label>
+        <button class="primary-button" type="submit" [disabled]="requestSaving">{{ requestSaving ? 'Submitting account request...' : 'Submit request' }}</button>
+      </form>
+      <p class="error request-error" *ngIf="requestError">{{ requestError }}</p>
+      <div class="request-table" *ngIf="requests.length"><div class="request-row" *ngFor="let request of requests"><strong>{{ displayAccountType(request.accountType) }}</strong><span>{{ request.requestedAt | date:'mediumDate' }}</span><span class="request-status">{{ request.status }}</span><span *ngIf="request.rejectionReason">Reason: {{ request.rejectionReason }}</span></div></div>
+      <p class="muted" *ngIf="!requests.length && !showRequestForm">No account requests yet.</p>
+    </div>
+    <form class="panel form-panel" *ngIf="permissions.isAdmin" (ngSubmit)="createAccount()" #accountForm="ngForm">
       <h2>New account</h2>
       <label>Account number<input name="accountNumber" [(ngModel)]="form.accountNumber" required placeholder="e.g. 10001234"></label>
-      <label>Account type<select name="accountType" [(ngModel)]="form.accountType" required><option value="" disabled>Select type</option><option>CHECKING</option><option>SAVINGS</option></select></label>
+      <label>Account type<select name="accountType" [(ngModel)]="form.accountType" required><option value="" disabled>Select type</option><option value="CURRENT">Current</option><option value="SAVINGS">Savings</option></select></label>
       <label>Opening balance<input name="balance" type="number" min="0" step="0.01" [(ngModel)]="form.balance" required></label>
-      <label>Customer<select name="customerId" [(ngModel)]="form.customerId" required><option [ngValue]="0" disabled>Select customer</option><option *ngFor="let customer of customers" [ngValue]="customer.id">{{ customer.name }} (#{{ customer.id }})</option></select></label>
+      <label>Account holder<select name="customerId" [(ngModel)]="form.customerId" required><option [ngValue]="0" disabled>Select account holder</option><option *ngFor="let customer of customers" [ngValue]="customer.id">{{ customer.name }}</option></select></label>
+      <label>Account holder name<input name="accountHolderName" [value]="selectedHolderName" readonly placeholder="Selected holder appears here"></label>
       <button class="primary-button" type="submit" [disabled]="accountForm.invalid || saving">{{ saving ? 'Saving...' : 'Create account' }}</button><p class="success" *ngIf="success">{{ success }}</p><p class="error" *ngIf="error">{{ error }}</p>
     </form>
-    <div class="panel"><div class="panel-heading"><h2>Account list</h2><button class="secondary-button" type="button" (click)="loadAccounts()">Refresh</button></div><p class="muted" *ngIf="loading">Loading accounts...</p><p class="muted" *ngIf="!loading && !accounts.length">No accounts found.</p><div class="table-wrap" *ngIf="accounts.length"><table><thead><tr><th>Account</th><th>Owner</th><th>Type</th><th>Balance</th><th></th></tr></thead><tbody><tr *ngFor="let account of accounts"><td>{{ account.accountNumber }}</td><td>{{ account.customerName || ('Customer #' + account.customerId) }}</td><td>{{ account.accountType }}</td><td>{{ account.balance | currency:'INR' }}</td><td><a class="text-link" [routerLink]="['/accounts', account.id, 'transactions']">Transactions</a></td></tr></tbody></table></div><p class="error" *ngIf="error">{{ error }}</p></div>
+    <div class="panel">
+      <div class="panel-heading">
+        <div>
+          <h2>Account list</h2>
+          <p class="list-count" *ngIf="accounts.length">Showing {{ pageStart }}-{{ pageEnd }} of {{ accounts.length }} accounts</p>
+        </div>
+        <div class="panel-actions"><button class="secondary-button" type="button" (click)="exportCsv()" [disabled]="loading || !accounts.length">Export CSV</button><button class="secondary-button" type="button" (click)="loadAccounts()" [disabled]="loading">{{ loading ? 'Loading...' : 'Refresh' }}</button></div>
+      </div>
+      <p class="muted" *ngIf="loading">Loading accounts...</p>
+      <p class="muted" *ngIf="!loading && !accounts.length">No accounts found.</p>
+      <div class="table-wrap" *ngIf="!loading && accounts.length">
+        <table>
+          <thead><tr><th>Account</th><th>Account number</th><th>Account holder</th><th>Type</th><th>Balance</th><th></th></tr></thead>
+          <tbody>
+            <tr *ngFor="let account of visibleAccounts">
+              <td>{{ account.accountNumber }}</td>
+              <td>{{ account.accountNumber }}</td>
+              <td>{{ account.customerName || 'Customer' }}</td>
+              <td>{{ displayAccountType(account.accountType) }}</td>
+              <td>{{ account.balance | currency:'INR' }}</td>
+              <td><a class="text-link" [routerLink]="['/accounts', account.id, 'transactions']">Transactions</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination" *ngIf="!loading && totalPages > 1">
+        <button class="secondary-button" type="button" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">Previous</button>
+        <span>Page {{ currentPage }} of {{ totalPages }}</span>
+        <button class="secondary-button" type="button" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">Next</button>
+      </div>
+      <p class="error" *ngIf="error">{{ error }}</p>
+    </div>
   </div>
 </section>

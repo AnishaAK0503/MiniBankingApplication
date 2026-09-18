@@ -1,6 +1,7 @@
 package com.banfico.banking.dto;
 
 import lombok.Data;
+import java.time.LocalDateTime;
 
 @Data
 public class AccountResponse {
@@ -10,4 +11,6 @@ public class AccountResponse {
     private Double balance;
     private Long customerId;
     private String customerName;
+    private String status;
+    private LocalDateTime createdAt;
 }

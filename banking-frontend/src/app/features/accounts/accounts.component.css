@@ -1,1 +1,23 @@
 :host { display: block; }
+
+.list-count {
+	margin: 5px 0 0;
+	color: #bdb4ca;
+	font-size: 13px;
+}
+
+.pagination {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 14px;
+	margin-top: 18px;
+	color: #ddd3e3;
+	font-size: 14px;
+}
+
+.customer-request-panel { grid-column: 1 / -1; }
+.request-table { margin-top: 18px; }
+.request-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,.1); color: #ddd3e3; }
+.request-status { color: #00f0ff; font-weight: 700; }
+.request-error { margin-top: 14px; line-height: 1.45; }

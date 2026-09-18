@@ -1,0 +1,14 @@
+<section class="feature-page workflow-page">
+  <div class="page-heading"><div><p class="eyebrow">CUSTOMER PAYMENT</p><h1>Transfer Money</h1><p class="muted">Send money to one of your saved beneficiaries.</p></div></div>
+  <div class="panel workflow-panel" *ngIf="!loading">
+    <form class="form-panel" (ngSubmit)="submit()">
+      <label>My account<select name="accountId" [(ngModel)]="form.accountId" required><option [ngValue]="0" disabled>Select account</option><option *ngFor="let account of accounts" [ngValue]="account.id">{{ account.accountNumber }} - {{ account.balance | currency:'INR' }}</option></select></label>
+      <label>Beneficiary<select name="beneficiaryId" [(ngModel)]="form.beneficiaryId" required><option [ngValue]="0" disabled>Select beneficiary</option><option *ngFor="let item of beneficiaries" [ngValue]="item.id">{{ item.name }} - {{ item.bankName }}</option></select></label>
+      <label>Amount<input name="amount" type="number" min="0.01" step="0.01" [(ngModel)]="form.amount" required></label>
+      <label>Description<textarea name="description" rows="3" [(ngModel)]="form.description" placeholder="Optional note"></textarea></label>
+      <button class="primary-button" type="submit" [disabled]="submitting">{{ submitting ? 'Submitting...' : 'Review and submit' }}</button>
+      <p class="error" *ngIf="error">{{ error }}</p>
+    </form>
+  </div>
+  <p class="muted" *ngIf="loading">Loading your accounts and beneficiaries...</p>
+</section>

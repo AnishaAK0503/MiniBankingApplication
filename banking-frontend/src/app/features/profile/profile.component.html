@@ -1,0 +1,25 @@
+<section class="profile-page">
+  <div class="profile-card">
+    <div class="avatar-wrap">
+      <div class="avatar">{{ initials }}</div>
+    </div>
+
+    <h1>{{ user?.name || 'User' }}</h1>
+    <p class="role-badge">{{ user?.role | titlecase }}</p>
+
+    <div class="info-grid">
+      <div class="info-item">
+        <span>Email</span>
+        <strong>{{ user?.email || 'Not available' }}</strong>
+      </div>
+      <div class="info-item">
+        <span>Access</span>
+        <strong>{{ user?.role | titlecase }}</strong>
+      </div>
+    </div>
+
+    <div class="actions">
+      <a routerLink="/dashboard" class="primary-btn">Back to dashboard</a>
+    </div>
+  </div>
+</section>

@@ -6,6 +6,7 @@ import { Account } from '../models/account.model';
 import { Beneficiary } from '../models/beneficiary.model';
 import { Customer } from '../models/customer.model';
 import { Transaction } from '../models/transaction.model';
+import { AccountRequest } from '../models/account-request.model';
 
 @Injectable({ providedIn: 'root' })
 export class BankingApiService {
@@ -14,7 +15,6 @@ export class BankingApiService {
   private readonly apiUrl = environment.apiUrl;
 
   getCustomers(): Observable<Customer[]> { return this.http.get<Customer[]>(`${this.apiUrl}/customers`); }
-  createCustomer(customer: Omit<Customer, 'id'>): Observable<Customer> { return this.http.post<Customer>(`${this.apiUrl}/customers`, customer); }
   
   getAccounts(): Observable<Account[]> { return this.http.get<Account[]>(`${this.apiUrl}/accounts`); }
   getAccount(id: number): Observable<Account> { return this.http.get<Account>(`${this.apiUrl}/accounts/${id}`); }
@@ -26,4 +26,11 @@ export class BankingApiService {
   getBeneficiaries(): Observable<Beneficiary[]> { return this.http.get<Beneficiary[]>(`${this.apiUrl}/beneficiaries`); }
   createBeneficiary(beneficiary: Omit<Beneficiary, 'id'>): Observable<Beneficiary> { return this.http.post<Beneficiary>(`${this.apiUrl}/beneficiaries`, beneficiary); }
   deleteBeneficiary(id: number): Observable<string> { return this.http.delete(`${this.apiUrl}/beneficiaries/${id}`, { responseType: 'text' }); }
+
+  createAccountRequest(request: Pick<AccountRequest, 'customerId' | 'accountType' | 'remarks'>): Observable<AccountRequest> { return this.http.post<AccountRequest>(`${this.apiUrl}/account-requests`, request); }
+  getAccountRequests(customerId?: number): Observable<AccountRequest[]> { const suffix = customerId ? `?customerId=${customerId}` : ''; return this.http.get<AccountRequest[]>(`${this.apiUrl}/account-requests${suffix}`); }
+  getPendingAccountRequests(): Observable<AccountRequest[]> { return this.http.get<AccountRequest[]>(`${this.apiUrl}/account-requests/pending-approval`); }
+  submitAccountRequest(id: number, actorName: string): Observable<AccountRequest> { return this.http.put<AccountRequest>(`${this.apiUrl}/account-requests/${id}/submit`, { actorName }); }
+  approveAccountRequest(id: number, actorName: string): Observable<AccountRequest> { return this.http.put<AccountRequest>(`${this.apiUrl}/account-requests/${id}/approve`, { actorName }); }
+  rejectAccountRequest(id: number, actorName: string, rejectionReason: string): Observable<AccountRequest> { return this.http.put<AccountRequest>(`${this.apiUrl}/account-requests/${id}/reject`, { actorName, rejectionReason }); }
 }

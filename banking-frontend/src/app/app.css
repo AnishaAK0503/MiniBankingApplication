@@ -1,10 +1,31 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+*::selection {
+  background: transparent;
+}
+
+h1, h2, h3, h4, h5, h6,
+.page-heading,
+.panel-heading,
+.eyebrow,
+.request-row strong,
+.stat-card,
+.action-card,
+.feature-page h1,
+.feature-page h2 {
+  user-select: none;
+}
+
 .app-shell {
-	min-height: 100vh;
-	display: flex;
-	background: #1a0b2e;
+  min-height: 100vh;
+  display: flex;
+  background: linear-gradient(180deg, #1a0b2e 0%, #220d3b 100%);
 }
 
 .app-main {
-	flex: 1;
-	min-width: 0;
+  flex: 1;
+  min-width: 0;
 }

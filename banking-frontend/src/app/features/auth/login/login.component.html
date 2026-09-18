@@ -1,0 +1,43 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="brand-wrap">
+      <div class="brand-icon">◈</div>
+      <span>Mini Banking</span>
+    </div>
+
+    <h1>Welcome back</h1>
+    <p class="subtext">Sign in to your secure banking workspace.</p>
+
+    <form class="auth-form" (ngSubmit)="login()">
+      <label>
+        <span>Email</span>
+        <input type="email" [(ngModel)]="form.email" name="email" required placeholder="name@example.com" />
+      </label>
+
+      <label>
+        <span>Password</span>
+        <input type="password" [(ngModel)]="form.password" name="password" required placeholder="Enter password" />
+      </label>
+
+      <button type="submit" [disabled]="loading">
+        {{ loading ? 'Signing in...' : 'Login' }}
+      </button>
+
+      <p class="error" *ngIf="error">{{ error }}</p>
+    </form>
+
+    <div class="switch-row">
+      <span>New here?</span>
+      <a routerLink="/register">Create account</a>
+    </div>
+
+    <div class="demo-box">
+      <p>Demo users</p>
+      <ul>
+        <li>anisha@bank.com / 123456 (admin)</li>
+        <li>riya@bank.com / 123456 (maker)</li>
+        <li>arjun@bank.com / 123456 (customer)</li>
+      </ul>
+    </div>
+  </div>
+</div>

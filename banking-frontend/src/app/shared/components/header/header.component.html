@@ -1,23 +1,15 @@
 <header class="header">
-
-  <div class="page-heading">
-    Mini Banking System
-  </div>
+  <div class="page-heading">Mini Banking System</div>
 
   <div class="user-section">
-
-    <span class="notification">
-      🔔
-    </span>
-
-    <div class="user">
-      <div class="avatar">
-        A
+    <a class="user" routerLink="/profile" aria-label="Open profile">
+      <div class="avatar">{{ initials }}</div>
+      <div class="user-meta">
+        <span class="user-name">{{ user?.name || 'Guest' }}</span>
+        <small>{{ user?.role | titlecase }}</small>
       </div>
+    </a>
 
-      <span>Anisha</span>
-    </div>
-
+    <button class="logout-button" type="button" (click)="logout()">Logout</button>
   </div>
-
 </header>

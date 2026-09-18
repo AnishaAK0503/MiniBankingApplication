@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 
 @Service
 public class AccountService {
@@ -29,6 +30,8 @@ public class AccountService {
         account.setAccountNumber(request.getAccountNumber());
         account.setAccountType(request.getAccountType());
         account.setBalance(request.getBalance());
+        account.setStatus("ACTIVE");
+        account.setCreatedAt(LocalDateTime.now());
         account.setCustomer(customer);
 
         BankAccount savedAccount = accountRepository.save(account);
@@ -59,6 +62,8 @@ public class AccountService {
 
         response.setCustomerId(account.getCustomer().getId());
         response.setCustomerName(account.getCustomer().getName());
+        response.setStatus(account.getStatus() == null ? "ACTIVE" : account.getStatus());
+        response.setCreatedAt(account.getCreatedAt());
         return response;
     }
 

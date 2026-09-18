@@ -1,0 +1,10 @@
+<div
+  *ngIf="toastService.toast$ | async as toast"
+  class="toast"
+  [ngClass]="toast.type"
+  role="status"
+  aria-live="polite">
+  <span class="toast-mark">{{ toast.type === 'success' ? '✓' : toast.type === 'error' ? '!' : 'i' }}</span>
+  <span>{{ toast.message }}</span>
+  <button type="button" aria-label="Dismiss notification" (click)="toastService.dismiss()">×</button>
+</div>

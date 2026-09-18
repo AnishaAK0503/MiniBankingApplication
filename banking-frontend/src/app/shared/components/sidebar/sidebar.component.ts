@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RolePermissionsService } from '../../../core/services/role-permissions.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -10,6 +11,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   styleUrl: './sidebar.component.css'
 })
 export class SidebarComponent {
+  readonly permissions = inject(RolePermissionsService);
   isOpen = false;
 
   toggle(): void {

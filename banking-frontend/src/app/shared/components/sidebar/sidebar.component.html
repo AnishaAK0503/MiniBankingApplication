@@ -34,6 +34,7 @@
       routerLink="/customers"
       routerLinkActive="active"
       class="nav-item"
+      *ngIf="permissions.canManageCustomers"
       (click)="close()">
       <span>◉</span>
       Customers
@@ -57,6 +58,11 @@
       Transactions
     </a>
 
+    <a routerLink="/account-requests" routerLinkActive="active" class="nav-item" *ngIf="permissions.isMaker || permissions.isAdmin" (click)="close()">
+      <span>▤</span>
+      Account Requests
+    </a>
+
     <a
       routerLink="/beneficiaries"
       routerLinkActive="active"
@@ -64,6 +70,26 @@
       (click)="close()">
       <span>♙</span>
       Beneficiaries
+    </a>
+
+    <a routerLink="/transfer" routerLinkActive="active" class="nav-item" *ngIf="permissions.canTransfer" (click)="close()">
+      <span>↗</span>
+      Transfer Money
+    </a>
+
+    <a routerLink="/approvals" routerLinkActive="active" class="nav-item" *ngIf="permissions.canReviewTransactions" (click)="close()">
+      <span>✓</span>
+      Pending Approvals
+    </a>
+
+    <a routerLink="/users" routerLinkActive="active" class="nav-item" *ngIf="permissions.canManageUsers" (click)="close()">
+      <span>♙</span>
+      Users
+    </a>
+
+    <a routerLink="/audit-logs" routerLinkActive="active" class="nav-item" *ngIf="permissions.canViewAuditLogs" (click)="close()">
+      <span>▤</span>
+      Audit Logs
     </a>
 
   </nav>

@@ -5,4 +5,6 @@ export interface Account {
   balance: number;
   customerId: number;
   customerName: string;
+  status?: string;
+  createdAt?: string;
 }
