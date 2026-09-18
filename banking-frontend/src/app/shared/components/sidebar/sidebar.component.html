@@ -4,7 +4,8 @@
   (click)="toggle()"
   [attr.aria-expanded]="isOpen"
   aria-controls="main-navigation"
-  aria-label="Toggle navigation menu">
+  aria-label="Toggle navigation menu"
+>
   <span></span>
   <span></span>
   <span></span>
@@ -13,19 +14,13 @@
 <div class="sidebar-backdrop" *ngIf="isOpen" (click)="close()"></div>
 
 <aside class="sidebar" [class.open]="isOpen" id="main-navigation">
-
   <div class="logo">
     <span class="logo-icon">◈</span>
     <span>MINIBANK</span>
   </div>
 
   <nav class="navigation">
-
-    <a
-      routerLink="/dashboard"
-      routerLinkActive="active"
-      class="nav-item"
-      (click)="close()">
+    <a routerLink="/dashboard" routerLinkActive="active" class="nav-item" (click)="close()">
       <span>⌂</span>
       Dashboard
     </a>
@@ -35,63 +30,80 @@
       routerLinkActive="active"
       class="nav-item"
       *ngIf="permissions.canManageCustomers"
-      (click)="close()">
+      (click)="close()"
+    >
       <span>◉</span>
       Customers
     </a>
 
-    <a
-      routerLink="/accounts"
-      routerLinkActive="active"
-      class="nav-item"
-      (click)="close()">
+    <a routerLink="/accounts" routerLinkActive="active" class="nav-item" (click)="close()">
       <span>▣</span>
       Accounts
     </a>
 
-    <a
-      routerLink="/transactions"
-      routerLinkActive="active"
-      class="nav-item"
-      (click)="close()">
+    <a routerLink="/transactions" routerLinkActive="active" class="nav-item" (click)="close()">
       <span>↔</span>
       Transactions
     </a>
 
-    <a routerLink="/account-requests" routerLinkActive="active" class="nav-item" *ngIf="permissions.isMaker || permissions.isAdmin" (click)="close()">
+    <a
+      routerLink="/account-requests"
+      routerLinkActive="active"
+      class="nav-item"
+      *ngIf="permissions.isMaker || permissions.isAdmin"
+      (click)="close()"
+    >
       <span>▤</span>
       Account Requests
     </a>
 
-    <a
-      routerLink="/beneficiaries"
-      routerLinkActive="active"
-      class="nav-item"
-      (click)="close()">
+    <a routerLink="/beneficiaries" routerLinkActive="active" class="nav-item" (click)="close()">
       <span>♙</span>
       Beneficiaries
     </a>
 
-    <a routerLink="/transfer" routerLinkActive="active" class="nav-item" *ngIf="permissions.canTransfer" (click)="close()">
+    <a
+      routerLink="/transfer"
+      routerLinkActive="active"
+      class="nav-item"
+      *ngIf="permissions.canTransfer"
+      (click)="close()"
+    >
       <span>↗</span>
       Transfer Money
     </a>
 
-    <a routerLink="/approvals" routerLinkActive="active" class="nav-item" *ngIf="permissions.canReviewTransactions" (click)="close()">
+    <a
+      routerLink="/approvals"
+      routerLinkActive="active"
+      class="nav-item"
+      *ngIf="permissions.canReviewTransactions"
+      (click)="close()"
+    >
       <span>✓</span>
       Pending Approvals
     </a>
 
-    <a routerLink="/users" routerLinkActive="active" class="nav-item" *ngIf="permissions.canManageUsers" (click)="close()">
+    <a
+      routerLink="/users"
+      routerLinkActive="active"
+      class="nav-item"
+      *ngIf="permissions.canManageUsers"
+      (click)="close()"
+    >
       <span>♙</span>
       Users
     </a>
 
-    <a routerLink="/audit-logs" routerLinkActive="active" class="nav-item" *ngIf="permissions.canViewAuditLogs" (click)="close()">
+    <a
+      routerLink="/audit-logs"
+      routerLinkActive="active"
+      class="nav-item"
+      *ngIf="permissions.canViewAuditLogs"
+      (click)="close()"
+    >
       <span>▤</span>
       Audit Logs
     </a>
-
   </nav>
-
 </aside>

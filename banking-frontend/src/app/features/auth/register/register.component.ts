@@ -9,7 +9,7 @@ import { AuthService, UserRole } from '../../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './register.component.html',
-  styleUrl: './register.component.css'
+  styleUrl: './register.component.css',
 })
 export class RegisterComponent {
   readonly auth = inject(AuthService);
@@ -19,7 +19,7 @@ export class RegisterComponent {
     name: '',
     email: '',
     password: '',
-    role: 'customer' as UserRole
+    role: 'customer' as UserRole,
   };
   error = '';
   loading = false;
@@ -29,8 +29,14 @@ export class RegisterComponent {
     this.loading = true;
 
     this.auth.register(this.form).subscribe({
-      next: () => { this.loading = false; this.router.navigateByUrl('/dashboard'); },
-      error: err => { this.error = typeof err?.error === 'string' ? err.error : 'Registration failed.'; this.loading = false; }
+      next: () => {
+        this.loading = false;
+        this.router.navigateByUrl('/dashboard');
+      },
+      error: (err) => {
+        this.error = typeof err?.error === 'string' ? err.error : 'Registration failed.';
+        this.loading = false;
+      },
     });
   }
 }

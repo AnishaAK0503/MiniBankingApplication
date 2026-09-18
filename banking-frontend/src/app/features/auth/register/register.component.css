@@ -73,8 +73,12 @@ h1 {
   color: #ebdff2;
 }
 
-.role-note strong { color: #00f0ff; }
-.role-note small { color: #cfc5d8; }
+.role-note strong {
+  color: #00f0ff;
+}
+.role-note small {
+  color: #cfc5d8;
+}
 
 .auth-form input,
 .auth-form select {

@@ -11,12 +11,24 @@
     <form class="auth-form" (ngSubmit)="login()">
       <label>
         <span>Email</span>
-        <input type="email" [(ngModel)]="form.email" name="email" required placeholder="name@example.com" />
+        <input
+          type="email"
+          [(ngModel)]="form.email"
+          name="email"
+          required
+          placeholder="name@example.com"
+        />
       </label>
 
       <label>
         <span>Password</span>
-        <input type="password" [(ngModel)]="form.password" name="password" required placeholder="Enter password" />
+        <input
+          type="password"
+          [(ngModel)]="form.password"
+          name="password"
+          required
+          placeholder="Enter password"
+        />
       </label>
 
       <button type="submit" [disabled]="loading">

@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
 export class CsvExportService {
   download(fileName: string, headers: string[], rows: unknown[][]): void {
     const csv = [headers, ...rows]
-      .map(row => row.map(value => this.escape(value)).join(','))
+      .map((row) => row.map((value) => this.escape(value)).join(','))
       .join('\r\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);

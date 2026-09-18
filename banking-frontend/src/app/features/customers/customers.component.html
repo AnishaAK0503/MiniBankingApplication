@@ -1,11 +1,72 @@
 <section class="feature-page">
-  <div class="page-heading"><div><p class="eyebrow">CUSTOMER DIRECTORY</p><h1>Customers</h1><p class="muted">View existing banking customers.</p></div></div>
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">CUSTOMER DIRECTORY</p>
+      <h1>Customers</h1>
+      <p class="muted">View existing banking customers.</p>
+    </div>
+  </div>
   <div class="content-grid">
     <div class="panel">
-      <div class="panel-heading"><div><h2>Customer list</h2><p class="list-count" *ngIf="customers.length">Showing {{ pageStart }}-{{ pageEnd }} of {{ customers.length }} customers</p></div><div class="panel-actions"><button class="secondary-button" type="button" (click)="exportCsv()" [disabled]="loading || !customers.length">Export CSV</button><button class="secondary-button" type="button" (click)="load()" [disabled]="loading">{{ loading ? 'Loading...' : 'Refresh' }}</button></div></div>
-      <p class="error" *ngIf="error">{{ error }}</p><p class="muted" *ngIf="loading">Loading customers...</p><p class="muted" *ngIf="!loading && !customers.length">No customers found.</p>
-      <div class="table-wrap" *ngIf="!loading && customers.length"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th></tr></thead><tbody><tr *ngFor="let customer of visibleCustomers"><td>{{ customer.name }}</td><td>{{ customer.email }}</td><td>{{ customer.phone }}</td></tr></tbody></table></div>
-      <div class="pagination" *ngIf="!loading && totalPages > 1"><button class="secondary-button" type="button" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">Previous</button><span>Page {{ currentPage }} of {{ totalPages }}</span><button class="secondary-button" type="button" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">Next</button></div>
+      <div class="panel-heading">
+        <div>
+          <h2>Customer list</h2>
+          <p class="list-count" *ngIf="customers.length">
+            Showing {{ pageStart }}-{{ pageEnd }} of {{ customers.length }} customers
+          </p>
+        </div>
+        <div class="panel-actions">
+          <button
+            class="secondary-button"
+            type="button"
+            (click)="exportCsv()"
+            [disabled]="loading || !customers.length"
+          >
+            Export CSV</button
+          ><button class="secondary-button" type="button" (click)="load()" [disabled]="loading">
+            {{ loading ? 'Loading...' : 'Refresh' }}
+          </button>
+        </div>
+      </div>
+      <p class="error" *ngIf="error">{{ error }}</p>
+      <p class="muted" *ngIf="loading">Loading customers...</p>
+      <p class="muted" *ngIf="!loading && !customers.length">No customers found.</p>
+      <div class="table-wrap" *ngIf="!loading && customers.length">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let customer of visibleCustomers">
+              <td>{{ customer.name }}</td>
+              <td>{{ customer.email }}</td>
+              <td>{{ customer.phone }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination" *ngIf="!loading && totalPages > 1">
+        <button
+          class="secondary-button"
+          type="button"
+          (click)="goToPage(currentPage - 1)"
+          [disabled]="currentPage === 1"
+        >
+          Previous</button
+        ><span>Page {{ currentPage }} of {{ totalPages }}</span
+        ><button
+          class="secondary-button"
+          type="button"
+          (click)="goToPage(currentPage + 1)"
+          [disabled]="currentPage === totalPages"
+        >
+          Next
+        </button>
+      </div>
     </div>
   </div>
 </section>

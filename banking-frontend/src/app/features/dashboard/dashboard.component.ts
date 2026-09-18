@@ -11,7 +11,7 @@ import { RolePermissionsService } from '../../core/services/role-permissions.ser
   standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.css'
+  styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent {
   private readonly api = inject(BankingApiService);
@@ -43,41 +43,60 @@ export class DashboardComponent {
   }
 
   private loadStats(): void {
-    this.api.getCustomers().pipe(retry({ count: 4, delay: 1000 }), timeout({ each: 5000 })).subscribe({
-      next: customers => {
-        const user = this.currentUser;
-        const customer = user?.role === 'customer'
-          ? customers.find(item => item.email.toLowerCase() === user.email.toLowerCase() || item.name.toLowerCase() === user.name.toLowerCase())
-          : undefined;
-        this.customerId = customer?.id ?? 0;
-        this.stats.customers = user?.role === 'customer' ? (customer ? 1 : 0) : customers.length;
-        this.changeDetector.detectChanges();
-      },
-      error: () => this.error = 'Customer count could not be loaded.'
-    });
+    this.api
+      .getCustomers()
+      .pipe(retry({ count: 4, delay: 1000 }), timeout({ each: 5000 }))
+      .subscribe({
+        next: (customers) => {
+          const user = this.currentUser;
+          const customer =
+            user?.role === 'customer'
+              ? customers.find(
+                  (item) =>
+                    item.email.toLowerCase() === user.email.toLowerCase() ||
+                    item.name.toLowerCase() === user.name.toLowerCase(),
+                )
+              : undefined;
+          this.customerId = customer?.id ?? 0;
+          this.stats.customers = user?.role === 'customer' ? (customer ? 1 : 0) : customers.length;
+          this.changeDetector.detectChanges();
+        },
+        error: () => (this.error = 'Customer count could not be loaded.'),
+      });
 
-    this.api.getBeneficiaries().pipe(retry({ count: 4, delay: 1000 }), timeout({ each: 5000 })).subscribe({
-      next: beneficiaries => {
-        this.stats.beneficiaries = this.currentUser?.role === 'customer'
-          ? beneficiaries.filter(item => item.customerId === this.customerId).length
-          : beneficiaries.length;
-        this.changeDetector.detectChanges();
-      },
-      error: () => this.error = 'Beneficiary count could not be loaded.'
-    });
+    this.api
+      .getBeneficiaries()
+      .pipe(retry({ count: 4, delay: 1000 }), timeout({ each: 5000 }))
+      .subscribe({
+        next: (beneficiaries) => {
+          this.stats.beneficiaries =
+            this.currentUser?.role === 'customer'
+              ? beneficiaries.filter((item) => item.customerId === this.customerId).length
+              : beneficiaries.length;
+          this.changeDetector.detectChanges();
+        },
+        error: () => (this.error = 'Beneficiary count could not be loaded.'),
+      });
 
-    this.api.getAccounts().pipe(retry({ count: 4, delay: 1000 }), timeout({ each: 5000 })).subscribe({
-      next: accounts => {
-        const visibleAccounts = this.currentUser?.role === 'customer'
-          ? accounts.filter(account => account.customerId === this.customerId)
-          : accounts;
-        this.stats.accounts = visibleAccounts.length;
-        this.stats.balance = visibleAccounts.reduce((total, account) => total + account.balance, 0);
-        this.changeDetector.detectChanges();
-        this.loadTransactionCount(visibleAccounts);
-      },
-      error: () => this.error = 'Account count could not be loaded.'
-    });
+    this.api
+      .getAccounts()
+      .pipe(retry({ count: 4, delay: 1000 }), timeout({ each: 5000 }))
+      .subscribe({
+        next: (accounts) => {
+          const visibleAccounts =
+            this.currentUser?.role === 'customer'
+              ? accounts.filter((account) => account.customerId === this.customerId)
+              : accounts;
+          this.stats.accounts = visibleAccounts.length;
+          this.stats.balance = visibleAccounts.reduce(
+            (total, account) => total + account.balance,
+            0,
+          );
+          this.changeDetector.detectChanges();
+          this.loadTransactionCount(visibleAccounts);
+        },
+        error: () => (this.error = 'Account count could not be loaded.'),
+      });
   }
 
   private loadTransactionCount(accounts: { id: number }[]): void {
@@ -86,11 +105,15 @@ export class DashboardComponent {
       return;
     }
 
-    forkJoin(accounts.map(account => this.api.getTransactions(account.id).pipe(
-      retry({ count: 2, delay: 500 }),
-      timeout({ each: 5000 }),
-      catchError(() => of([]))
-    ))).subscribe(histories => {
+    forkJoin(
+      accounts.map((account) =>
+        this.api.getTransactions(account.id).pipe(
+          retry({ count: 2, delay: 500 }),
+          timeout({ each: 5000 }),
+          catchError(() => of([])),
+        ),
+      ),
+    ).subscribe((histories) => {
       this.stats.transactions = histories.reduce((total, history) => total + history.length, 0);
       this.changeDetector.detectChanges();
     });

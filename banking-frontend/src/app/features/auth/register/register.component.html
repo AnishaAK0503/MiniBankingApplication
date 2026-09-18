@@ -11,17 +11,36 @@
     <form class="auth-form" (ngSubmit)="register()">
       <label>
         <span>Full name</span>
-        <input type="text" [(ngModel)]="form.name" name="name" required placeholder="Your full name" />
+        <input
+          type="text"
+          [(ngModel)]="form.name"
+          name="name"
+          required
+          placeholder="Your full name"
+        />
       </label>
 
       <label>
         <span>Email</span>
-        <input type="email" [(ngModel)]="form.email" name="email" required placeholder="name@example.com" />
+        <input
+          type="email"
+          [(ngModel)]="form.email"
+          name="email"
+          required
+          placeholder="name@example.com"
+        />
       </label>
 
       <label>
         <span>Password</span>
-        <input type="password" [(ngModel)]="form.password" name="password" required minlength="6" placeholder="Minimum 6 characters" />
+        <input
+          type="password"
+          [(ngModel)]="form.password"
+          name="password"
+          required
+          minlength="6"
+          placeholder="Minimum 6 characters"
+        />
       </label>
 
       <label>

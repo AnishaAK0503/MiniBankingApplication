@@ -7,7 +7,7 @@ import { ToastService } from '../../services/toast.service';
   standalone: true,
   imports: [CommonModule, AsyncPipe],
   templateUrl: './toast.component.html',
-  styleUrl: './toast.component.css'
+  styleUrl: './toast.component.css',
 })
 export class ToastComponent {
   readonly toastService = inject(ToastService);

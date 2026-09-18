@@ -11,7 +11,7 @@ import { retry, timeout } from 'rxjs';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './customers.component.html',
-  styleUrl: './customers.component.css'
+  styleUrl: './customers.component.css',
 })
 export class CustomersComponent {
   private readonly api = inject(BankingApiService);
@@ -28,32 +28,41 @@ export class CustomersComponent {
     afterNextRender(() => this.load());
   }
 
-  get totalPages(): number { return Math.max(1, Math.ceil(this.customers.length / this.pageSize)); }
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.customers.length / this.pageSize));
+  }
   get visibleCustomers(): Customer[] {
     const start = (this.currentPage - 1) * this.pageSize;
     return this.customers.slice(start, start + this.pageSize);
   }
-  get pageStart(): number { return (this.currentPage - 1) * this.pageSize + 1; }
-  get pageEnd(): number { return Math.min(this.currentPage * this.pageSize, this.customers.length); }
+  get pageStart(): number {
+    return (this.currentPage - 1) * this.pageSize + 1;
+  }
+  get pageEnd(): number {
+    return Math.min(this.currentPage * this.pageSize, this.customers.length);
+  }
 
   load(): void {
     this.loading = true;
     this.error = '';
-    this.api.getCustomers().pipe(retry({ count: 4, delay: 1000 }), timeout({ each: 10000 })).subscribe({
-      next: data => {
-        this.customers = data;
-        this.currentPage = 1;
-        this.loading = false;
-        this.toast.show('Customer list loaded.');
-        this.changeDetector.detectChanges();
-      },
-      error: err => {
-        this.error = this.message(err);
-        this.loading = false;
-        this.toast.show(this.error, 'error');
-        this.changeDetector.detectChanges();
-      }
-    });
+    this.api
+      .getCustomers()
+      .pipe(retry({ count: 4, delay: 1000 }), timeout({ each: 10000 }))
+      .subscribe({
+        next: (data) => {
+          this.customers = data;
+          this.currentPage = 1;
+          this.loading = false;
+          this.toast.show('Customer list loaded.');
+          this.changeDetector.detectChanges();
+        },
+        error: (err) => {
+          this.error = this.message(err);
+          this.loading = false;
+          this.toast.show(this.error, 'error');
+          this.changeDetector.detectChanges();
+        },
+      });
   }
 
   goToPage(page: number): void {
@@ -61,11 +70,16 @@ export class CustomersComponent {
   }
 
   exportCsv(): void {
-    this.csv.download('customers.csv', ['Name', 'Email', 'Phone'], this.customers.map(customer => [customer.name, customer.email, customer.phone]));
+    this.csv.download(
+      'customers.csv',
+      ['Name', 'Email', 'Phone'],
+      this.customers.map((customer) => [customer.name, customer.email, customer.phone]),
+    );
   }
 
   private message(error: any): string {
-    if (error?.error && typeof error.error === 'object') return Object.values(error.error).join(' ');
+    if (error?.error && typeof error.error === 'object')
+      return Object.values(error.error).join(' ');
     return typeof error?.error === 'string' ? error.error : 'Unable to complete the request.';
   }
 }

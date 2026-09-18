@@ -1,1 +1,94 @@
-<section class="feature-page"><div class="page-heading"><div><p class="eyebrow">MAKER OPERATIONS</p><h1>Account Requests</h1><p class="muted">Review customer requests and submit them for Checker approval.</p></div></div><div class="panel"><div class="panel-heading"><div><h2>Request list</h2><p class="list-count" *ngIf="requests.length">Showing {{ pageStart }}-{{ pageEnd }} of {{ requests.length }} requests</p></div><button class="secondary-button" type="button" (click)="exportCsv()" [disabled]="loading || !requests.length">Export CSV</button></div><p class="error" *ngIf="error">{{ error }}</p><p class="muted" *ngIf="loading">Loading account requests...</p><p class="muted" *ngIf="!loading && !error && !requests.length">No customer account requests have been submitted yet.</p><div class="table-wrap" *ngIf="!loading && requests.length"><table><thead><tr><th>Request</th><th>Customer</th><th>Type</th><th>Requested</th><th>Status</th><th>Remarks</th><th>Action</th></tr></thead><tbody><tr *ngFor="let request of visibleRequests"><td>{{ request.id }}</td><td>{{ request.customerName }}</td><td>{{ displayType(request.accountType) }}</td><td>{{ request.requestedAt | date:'medium' }}</td><td>{{ request.status }}</td><td>{{ request.remarks || '-' }}</td><td><button class="primary-button" type="button" *ngIf="permissions.isMaker && (request.status || '').trim().toUpperCase() === 'PENDING'" (click)="submit(request)" [disabled]="submitting === request.id">{{ submitting === request.id ? 'Submitting...' : 'Submit for approval' }}</button><span class="muted" *ngIf="!permissions.isMaker || (request.status || '').trim().toUpperCase() !== 'PENDING'">Maker only</span></td></tr></tbody></table></div><div class="pagination" *ngIf="!loading && totalPages > 1"><button class="secondary-button" type="button" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">Previous</button><span>Page {{ currentPage }} of {{ totalPages }}</span><button class="secondary-button" type="button" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">Next</button></div></div></section>
+<section class="feature-page">
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">MAKER OPERATIONS</p>
+      <h1>Account Requests</h1>
+      <p class="muted">Review customer requests and submit them for Checker approval.</p>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-heading">
+      <div>
+        <h2>Request list</h2>
+        <p class="list-count" *ngIf="requests.length">
+          Showing {{ pageStart }}-{{ pageEnd }} of {{ requests.length }} requests
+        </p>
+      </div>
+      <button
+        class="secondary-button"
+        type="button"
+        (click)="exportCsv()"
+        [disabled]="loading || !requests.length"
+      >
+        Export CSV
+      </button>
+    </div>
+    <p class="error" *ngIf="error">{{ error }}</p>
+    <p class="muted" *ngIf="loading">Loading account requests...</p>
+    <p class="muted" *ngIf="!loading && !error && !requests.length">
+      No customer account requests have been submitted yet.
+    </p>
+    <div class="table-wrap" *ngIf="!loading && requests.length">
+      <table>
+        <thead>
+          <tr>
+            <th>Request</th>
+            <th>Customer</th>
+            <th>Type</th>
+            <th>Requested</th>
+            <th>Status</th>
+            <th>Remarks</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let request of visibleRequests">
+            <td>{{ request.id }}</td>
+            <td>{{ request.customerName }}</td>
+            <td>{{ displayType(request.accountType) }}</td>
+            <td>{{ request.requestedAt | date: 'medium' }}</td>
+            <td>{{ request.status }}</td>
+            <td>{{ request.remarks || '-' }}</td>
+            <td>
+              <button
+                class="primary-button"
+                type="button"
+                *ngIf="
+                  permissions.isMaker && (request.status || '').trim().toUpperCase() === 'PENDING'
+                "
+                (click)="submit(request)"
+                [disabled]="submitting === request.id"
+              >
+                {{ submitting === request.id ? 'Submitting...' : 'Submit for approval' }}</button
+              ><span
+                class="muted"
+                *ngIf="
+                  !permissions.isMaker || (request.status || '').trim().toUpperCase() !== 'PENDING'
+                "
+                >Maker only</span
+              >
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination" *ngIf="!loading && totalPages > 1">
+      <button
+        class="secondary-button"
+        type="button"
+        (click)="goToPage(currentPage - 1)"
+        [disabled]="currentPage === 1"
+      >
+        Previous</button
+      ><span>Page {{ currentPage }} of {{ totalPages }}</span
+      ><button
+        class="secondary-button"
+        type="button"
+        (click)="goToPage(currentPage + 1)"
+        [disabled]="currentPage === totalPages"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+</section>

@@ -10,7 +10,7 @@ import { ToastComponent } from './shared/components/toast/toast.component';
   selector: 'app-root',
   imports: [CommonModule, RouterOutlet, HeaderComponent, SidebarComponent, ToastComponent],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.css',
 })
 export class App {
   readonly auth = inject(AuthService);

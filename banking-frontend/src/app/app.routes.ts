@@ -19,32 +19,71 @@ export const routes: Routes = [
   {
     path: '',
     redirectTo: 'login',
-    pathMatch: 'full'
+    pathMatch: 'full',
   },
   {
     path: 'login',
-    component: LoginComponent
+    component: LoginComponent,
   },
   {
     path: 'register',
-    component: RegisterComponent
+    component: RegisterComponent,
   },
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
   {
     path: 'profile',
     component: ProfileComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard],
   },
-  { path: 'customers', component: CustomersComponent, canActivate: [authGuard, roleGuard], data: { roles: ['maker', 'admin'] } },
+  {
+    path: 'customers',
+    component: CustomersComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['maker', 'admin'] },
+  },
   { path: 'accounts', component: AccountsComponent, canActivate: [authGuard] },
-  { path: 'account-requests', component: AccountRequestsComponent, canActivate: [authGuard, roleGuard], data: { roles: ['maker', 'admin'] } },
+  {
+    path: 'account-requests',
+    component: AccountRequestsComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['maker', 'admin'] },
+  },
   { path: 'transactions', component: TransactionsComponent, canActivate: [authGuard] },
-  { path: 'accounts/:accountId/transactions', component: TransactionsComponent, canActivate: [authGuard] },
+  {
+    path: 'accounts/:accountId/transactions',
+    component: TransactionsComponent,
+    canActivate: [authGuard],
+  },
   { path: 'beneficiaries', component: BeneficiariesComponent, canActivate: [authGuard] },
-  { path: 'transfer', component: TransferComponent, canActivate: [authGuard, roleGuard], data: { roles: ['customer'] } },
-  { path: 'approvals', component: ApprovalsComponent, canActivate: [authGuard, roleGuard], data: { roles: ['checker', 'admin'] } },
-  { path: 'approvals/:id', component: ApprovalsComponent, canActivate: [authGuard, roleGuard], data: { roles: ['checker', 'admin'] } },
-  { path: 'users', component: UsersComponent, canActivate: [authGuard, roleGuard], data: { roles: ['admin'] } },
-  { path: 'audit-logs', component: AuditLogsComponent, canActivate: [authGuard, roleGuard], data: { roles: ['admin'] } },
-  { path: '**', redirectTo: 'login' }
+  {
+    path: 'transfer',
+    component: TransferComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['customer'] },
+  },
+  {
+    path: 'approvals',
+    component: ApprovalsComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['checker', 'admin'] },
+  },
+  {
+    path: 'approvals/:id',
+    component: ApprovalsComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['checker', 'admin'] },
+  },
+  {
+    path: 'users',
+    component: UsersComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['admin'] },
+  },
+  {
+    path: 'audit-logs',
+    component: AuditLogsComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['admin'] },
+  },
+  { path: '**', redirectTo: 'login' },
 ];

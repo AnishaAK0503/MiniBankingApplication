@@ -51,7 +51,7 @@
   <div class="balance-card">
     <div>
       <p>Total Balance</p>
-      <h2>{{ stats.balance | currency:'INR' }}</h2>
+      <h2>{{ stats.balance | currency: 'INR' }}</h2>
     </div>
     <div class="balance-icon">₹</div>
   </div>
@@ -72,22 +72,42 @@
       <p>Manage your customers</p>
     </a>
 
-    <a routerLink="/accounts" class="action-card" *ngIf="permissions.canManageAccounts || permissions.isCustomer || permissions.isChecker">
+    <a
+      routerLink="/accounts"
+      class="action-card"
+      *ngIf="permissions.canManageAccounts || permissions.isCustomer || permissions.isChecker"
+    >
       <span>02</span>
       <h3>Accounts</h3>
       <p>View bank accounts</p>
     </a>
 
-    <a routerLink="/beneficiaries" class="action-card" *ngIf="permissions.canManageBeneficiaries || permissions.isChecker">
+    <a
+      routerLink="/beneficiaries"
+      class="action-card"
+      *ngIf="permissions.canManageBeneficiaries || permissions.isChecker"
+    >
       <span>03</span>
       <h3>Beneficiaries</h3>
       <p>Manage beneficiaries</p>
     </a>
 
-    <a routerLink="/accounts/1/transactions" class="action-card" *ngIf="permissions.canCreateTransactions || permissions.canReviewTransactions">
+    <a
+      routerLink="/accounts/1/transactions"
+      class="action-card"
+      *ngIf="permissions.canCreateTransactions || permissions.canReviewTransactions"
+    >
       <span>04</span>
       <h3>Transactions</h3>
-      <p>{{ permissions.isMaker ? 'Submit a transaction request' : permissions.isChecker ? 'Review transaction activity' : 'View transactions' }}</p>
+      <p>
+        {{
+          permissions.isMaker
+            ? 'Submit a transaction request'
+            : permissions.isChecker
+              ? 'Review transaction activity'
+              : 'View transactions'
+        }}
+      </p>
     </a>
 
     <a routerLink="/transfer" class="action-card" *ngIf="permissions.canTransfer">

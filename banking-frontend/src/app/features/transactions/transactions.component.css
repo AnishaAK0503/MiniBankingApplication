@@ -1,11 +1,40 @@
-:host { display: block; }
+:host {
+  display: block;
+}
 
-.maker-requests { margin-top: 22px; }
-.request-row { display: flex; gap: 18px; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,.1); color: #ddd3e3; }
-.request-row strong { color: #fff; }
-.request-status { color: inherit; font-weight: 700; }
+.maker-requests {
+  margin-top: 22px;
+}
+.request-row {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ddd3e3;
+}
+.request-row strong {
+  color: #fff;
+}
+.request-status {
+  color: inherit;
+  font-weight: 700;
+}
 
-.lookup-panel select { max-height: 180px; }
-.lookup-panel select { min-width: min(100%, 520px); background: #241132; border: 1px solid #00f0ff; color: #fff; }
-.lookup-panel select option { background: #241132; color: #fff; padding: 8px; }
-.selected-account { display: none; }
+.lookup-panel select {
+  max-height: 180px;
+}
+.lookup-panel select {
+  min-width: min(100%, 520px);
+  background: #241132;
+  border: 1px solid #00f0ff;
+  color: #fff;
+}
+.lookup-panel select option {
+  background: #241132;
+  color: #fff;
+  padding: 8px;
+}
+.selected-account {
+  display: none;
+}

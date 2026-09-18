@@ -8,7 +8,7 @@ import { AuthService } from '../../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './header.component.html',
-  styleUrl: './header.component.css'
+  styleUrl: './header.component.css',
 })
 export class HeaderComponent implements OnInit {
   readonly auth = inject(AuthService);
@@ -17,7 +17,7 @@ export class HeaderComponent implements OnInit {
 
   ngOnInit(): void {
     this.user = this.auth.getCurrentUser();
-    this.auth.currentUser$.subscribe(user => {
+    this.auth.currentUser$.subscribe((user) => {
       this.user = user;
     });
   }

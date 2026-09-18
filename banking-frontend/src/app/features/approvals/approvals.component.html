@@ -11,22 +11,43 @@
     <div class="panel-heading">
       <div>
         <h2>Approval list</h2>
-        <p class="list-count" *ngIf="pendingItems.length">Showing {{ pageStart }}-{{ pageEnd }} of {{ pendingItems.length }} approvals</p>
+        <p class="list-count" *ngIf="pendingItems.length">
+          Showing {{ pageStart }}-{{ pageEnd }} of {{ pendingItems.length }} approvals
+        </p>
       </div>
-      <div class="panel-actions"><button class="secondary-button" type="button" (click)="refresh()" [disabled]="loading">{{ loading ? 'Refreshing...' : 'Refresh' }}</button><button class="secondary-button" type="button" (click)="exportCsv()" [disabled]="!pendingItems.length">Export CSV</button></div>
+      <div class="panel-actions">
+        <button class="secondary-button" type="button" (click)="refresh()" [disabled]="loading">
+          {{ loading ? 'Refreshing...' : 'Refresh' }}</button
+        ><button
+          class="secondary-button"
+          type="button"
+          (click)="exportCsv()"
+          [disabled]="!pendingItems.length"
+        >
+          Export CSV
+        </button>
+      </div>
     </div>
 
     <p class="error" *ngIf="error">{{ error }}</p>
-    <p class="muted" *ngIf="!loading && !pendingItems.length && !error">No requests pending approval.</p>
+    <p class="muted" *ngIf="!loading && !pendingItems.length && !error">
+      No requests pending approval.
+    </p>
     <div class="approval-list">
       <article class="approval-item" *ngFor="let item of visiblePendingItems">
         <div class="approval-main">
-          <span class="request-id">{{ item.type === 'account' ? 'Account Request' : item.type === 'transaction' ? 'Transaction Request' : 'Beneficiary Request' }}</span>
+          <span class="request-id">{{
+            item.type === 'account'
+              ? 'Account Request'
+              : item.type === 'transaction'
+                ? 'Transaction Request'
+                : 'Beneficiary Request'
+          }}</span>
           <h2>{{ item.displayName }}</h2>
           <div class="approval-details">
             <span><strong>Customer</strong>{{ item.customerName }}</span>
             <span><strong>Created by</strong>{{ item.createdBy }}</span>
-            <span><strong>Requested</strong>{{ item.createdAt | date:'medium' }}</span>
+            <span><strong>Requested</strong>{{ item.createdAt | date: 'medium' }}</span>
             <span><strong>Remarks</strong>{{ item.remarks || 'No remarks' }}</span>
           </div>
         </div>
@@ -35,19 +56,46 @@
           <button class="danger-button" type="button" (click)="rejectItem(item)">Reject</button>
         </div>
         <div class="reject-box" *ngIf="rejectingRequestId === item.id">
-          <input class="reject-input" type="text" [(ngModel)]="rejectionReason[item.id]" placeholder="Enter rejection reason" />
+          <input
+            class="reject-input"
+            type="text"
+            [(ngModel)]="rejectionReason[item.id]"
+            placeholder="Enter rejection reason"
+          />
           <div class="reject-actions">
-            <button class="primary-button small-button" type="button" (click)="submitRejectItem(item)">Submit</button>
-            <button class="secondary-button small-button" type="button" (click)="cancelReject()">Cancel</button>
+            <button
+              class="primary-button small-button"
+              type="button"
+              (click)="submitRejectItem(item)"
+            >
+              Submit
+            </button>
+            <button class="secondary-button small-button" type="button" (click)="cancelReject()">
+              Cancel
+            </button>
           </div>
         </div>
       </article>
     </div>
 
     <div class="pagination" *ngIf="totalPages > 1">
-      <button class="secondary-button" type="button" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">Previous</button>
+      <button
+        class="secondary-button"
+        type="button"
+        (click)="goToPage(currentPage - 1)"
+        [disabled]="currentPage === 1"
+      >
+        Previous
+      </button>
       <span>Page {{ currentPage }} of {{ totalPages }}</span>
-      <button class="secondary-button" type="button" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">Next</button>
+      <button
+        class="secondary-button"
+        type="button"
+        (click)="goToPage(currentPage + 1)"
+        [disabled]="currentPage === totalPages"
+      >
+        Next
+      </button>
     </div>
   </div>
 </section>

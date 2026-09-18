@@ -30,7 +30,7 @@ export class AuthService {
   getUsers(): AppUser[] {
     try {
       const data = localStorage.getItem(this.storageKey);
-      return data ? JSON.parse(data) as AppUser[] : [];
+      return data ? (JSON.parse(data) as AppUser[]) : [];
     } catch {
       return [];
     }
@@ -50,14 +50,25 @@ export class AuthService {
   }
 
   login(email: string, password: string): Observable<AppUser> {
-    return this.http.post<AppUser>(`${this.apiUrl}/auth/login`, { email, password }).pipe(tap(user => this.setSession(user)));
+    return this.http
+      .post<AppUser>(`${this.apiUrl}/auth/login`, { email, password })
+      .pipe(tap((user) => this.setSession(user)));
   }
 
-  register(payload: { name: string; email: string; password: string; role: UserRole }): Observable<AppUser> {
-    return this.http.post<AppUser>(`${this.apiUrl}/auth/register`, payload).pipe(tap(user => this.setSession(user)));
+  register(payload: {
+    name: string;
+    email: string;
+    password: string;
+    role: UserRole;
+  }): Observable<AppUser> {
+    return this.http
+      .post<AppUser>(`${this.apiUrl}/auth/register`, payload)
+      .pipe(tap((user) => this.setSession(user)));
   }
 
-  getBackendUsers(): Observable<AppUser[]> { return this.http.get<AppUser[]>(`${this.apiUrl}/auth/users`); }
+  getBackendUsers(): Observable<AppUser[]> {
+    return this.http.get<AppUser[]>(`${this.apiUrl}/auth/users`);
+  }
 
   private setSession(user: AppUser): void {
     localStorage.setItem(this.sessionKey, JSON.stringify(user));
@@ -72,6 +83,11 @@ export class AuthService {
   getInitials(name: string): string {
     if (!name) return 'U';
     const parts = name.trim().split(/\s+/).slice(0, 2);
-    return parts.map(part => part.charAt(0).toUpperCase()).join('').slice(0, 2) || 'U';
+    return (
+      parts
+        .map((part) => part.charAt(0).toUpperCase())
+        .join('')
+        .slice(0, 2) || 'U'
+    );
   }
 }

@@ -1,1 +1,64 @@
-<section class="feature-page"><div class="page-heading"><div><p class="eyebrow">ADMINISTRATION</p><h1>Audit Logs</h1><p class="muted">Trace important actions across the application.</p></div></div><div class="panel table-wrap"><div class="panel-heading"><div><h2>Audit activity</h2><p class="list-count" *ngIf="logs.length">Showing {{ pageStart }}-{{ pageEnd }} of {{ logs.length }} logs</p></div><button class="secondary-button" type="button" (click)="exportCsv()" [disabled]="!logs.length">Export CSV</button></div><p class="muted" *ngIf="!logs.length">No audit activity recorded yet.</p><table *ngIf="logs.length"><thead><tr><th>User</th><th>Action</th><th>Entity</th><th>Time</th></tr></thead><tbody><tr *ngFor="let log of visibleLogs"><td>{{ log.user }}</td><td>{{ log.action }}</td><td>{{ log.entity }}</td><td>{{ log.time }}</td></tr></tbody></table><div class="pagination" *ngIf="totalPages > 1"><button class="secondary-button" type="button" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">Previous</button><span>Page {{ currentPage }} of {{ totalPages }}</span><button class="secondary-button" type="button" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">Next</button></div></div></section>
+<section class="feature-page">
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">ADMINISTRATION</p>
+      <h1>Audit Logs</h1>
+      <p class="muted">Trace important actions across the application.</p>
+    </div>
+  </div>
+  <div class="panel table-wrap">
+    <div class="panel-heading">
+      <div>
+        <h2>Audit activity</h2>
+        <p class="list-count" *ngIf="logs.length">
+          Showing {{ pageStart }}-{{ pageEnd }} of {{ logs.length }} logs
+        </p>
+      </div>
+      <button
+        class="secondary-button"
+        type="button"
+        (click)="exportCsv()"
+        [disabled]="!logs.length"
+      >
+        Export CSV
+      </button>
+    </div>
+    <p class="muted" *ngIf="!logs.length">No audit activity recorded yet.</p>
+    <table *ngIf="logs.length">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Action</th>
+          <th>Entity</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let log of visibleLogs">
+          <td>{{ log.user }}</td>
+          <td>{{ log.action }}</td>
+          <td>{{ log.entity }}</td>
+          <td>{{ log.time }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="pagination" *ngIf="totalPages > 1">
+      <button
+        class="secondary-button"
+        type="button"
+        (click)="goToPage(currentPage - 1)"
+        [disabled]="currentPage === 1"
+      >
+        Previous</button
+      ><span>Page {{ currentPage }} of {{ totalPages }}</span
+      ><button
+        class="secondary-button"
+        type="button"
+        (click)="goToPage(currentPage + 1)"
+        [disabled]="currentPage === totalPages"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+</section>
