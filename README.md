@@ -88,9 +88,4 @@ npm run build
 
 ```powershell
 cd banking-backend
-.\mvnw.cmd test
-```
-
-## Deferred Work
-
-Consent creation, consent approval/rejection, and consent-based transaction guarding are deferred until the next project phase. They should be reintroduced as a separate feature without changing the completed Weeks 1-4 banking and authentication work.
+.\mvnw.cmd testred until the next project phase. They should be reintroduced as a separate feature without changing the completed Weeks 1-4 banking and authentication work.
