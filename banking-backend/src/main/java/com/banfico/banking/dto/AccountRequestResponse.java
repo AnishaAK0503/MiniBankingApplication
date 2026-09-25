@@ -13,6 +13,7 @@ public class AccountRequestResponse {
     private String remarks;
     private String status;
     private LocalDateTime requestedAt;
+    private String requestedBy;
     private String reviewedByMaker;
     private LocalDateTime reviewedAt;
     private String approvedByChecker;

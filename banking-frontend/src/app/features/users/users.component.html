@@ -2,69 +2,65 @@
   <div class="page-heading">
     <div>
       <p class="eyebrow">ADMINISTRATION</p>
-      <h1>User Management</h1>
-      <p class="muted">Users and roles stored in PostgreSQL.</p>
+      <h1>User management</h1>
+      <p class="muted">Track all application users and filter by role, status, and access profile.</p>
     </div>
   </div>
-  <div class="panel table-wrap">
-    <div class="panel-heading">
-      <div>
-        <h2>User list</h2>
-        <p class="list-count" *ngIf="users.length">
-          Showing {{ pageStart }}-{{ pageEnd }} of {{ users.length }} users
-        </p>
-      </div>
-      <div class="panel-actions">
-        <button class="secondary-button" type="button" (click)="load()" [disabled]="loading">
-          {{ loading ? 'Loading...' : 'Refresh' }}</button
-        ><button
-          class="secondary-button"
-          type="button"
-          (click)="exportCsv()"
-          [disabled]="loading || !users.length"
-        >
-          Export CSV
-        </button>
+
+  <div class="panel">
+    <div class="panel-heading users-toolbar">
+      <div class="filters-row">
+        <label>
+          <span>Search</span>
+          <input type="search" [(ngModel)]="searchTerm" placeholder="Search by name, email, or department" />
+        </label>
+
+        <label>
+          <span>Role</span>
+          <select [(ngModel)]="roleFilter">
+            <option value="all">All roles</option>
+            <option value="admin">Admins</option>
+            <option value="checker">Checkers</option>
+            <option value="maker">Makers</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Status</span>
+          <select [(ngModel)]="statusFilter">
+            <option value="all">All statuses</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </label>
       </div>
     </div>
-    <p class="error" *ngIf="error">{{ error }}</p>
-    <p class="muted" *ngIf="loading">Loading users...</p>
-    <p class="muted" *ngIf="!loading && !error && !users.length">No users found.</p>
-    <table *ngIf="!loading && !error && users.length">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Role</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let user of visibleUsers">
-          <td>{{ user.name }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.role | titlecase }}</td>
-          <td>{{ user.active ? 'Active' : 'Disabled' }}</td>
-        </tr>
-      </tbody>
-    </table>
-    <div class="pagination" *ngIf="!loading && totalPages > 1">
-      <button
-        class="secondary-button"
-        type="button"
-        (click)="goToPage(currentPage - 1)"
-        [disabled]="currentPage === 1"
-      >
-        Previous</button
-      ><span>Page {{ currentPage }} of {{ totalPages }}</span
-      ><button
-        class="secondary-button"
-        type="button"
-        (click)="goToPage(currentPage + 1)"
-        [disabled]="currentPage === totalPages"
-      >
-        Next
-      </button>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Department</th>
+            <th>Last login</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of filteredUsers">
+            <td>{{ user.name }}</td>
+            <td>{{ user.email }}</td>
+            <td><span class="role-pill" [ngClass]="user.role">{{ roleLabel(user.role) }}</span></td>
+            <td>{{ user.status }}</td>
+            <td>{{ user.department }}</td>
+            <td>{{ user.lastLogin }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+
+    <p class="muted" *ngIf="!filteredUsers.length">No users match the current filters.</p>
   </div>
 </section>

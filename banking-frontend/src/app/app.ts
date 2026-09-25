@@ -17,7 +17,7 @@ export class App {
   readonly router = inject(Router);
 
   get showShell(): boolean {
-    const guestRoute = this.router.url === '/login' || this.router.url === '/register';
+    const guestRoute = this.router.url === '/login';
     return this.auth.isLoggedIn() && !guestRoute;
   }
 

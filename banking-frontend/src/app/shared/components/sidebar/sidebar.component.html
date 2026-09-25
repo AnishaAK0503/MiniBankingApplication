@@ -15,14 +15,19 @@
 
 <aside class="sidebar" [class.open]="isOpen" id="main-navigation">
   <div class="logo">
-    <span class="logo-icon">◈</span>
-    <span>MINIBANK</span>
+    <span class="logo-icon">▥</span>
+    <span>MINI BANKING</span>
   </div>
 
   <nav class="navigation">
     <a routerLink="/dashboard" routerLinkActive="active" class="nav-item" (click)="close()">
       <span>⌂</span>
       Dashboard
+    </a>
+
+    <a routerLink="/notifications" routerLinkActive="active" class="nav-item" (click)="close()">
+      <span>!</span>
+      Notifications
     </a>
 
     <a
@@ -50,7 +55,7 @@
       routerLink="/account-requests"
       routerLinkActive="active"
       class="nav-item"
-      *ngIf="permissions.isMaker || permissions.isAdmin"
+      *ngIf="permissions.isMaker"
       (click)="close()"
     >
       <span>▤</span>
@@ -60,17 +65,6 @@
     <a routerLink="/beneficiaries" routerLinkActive="active" class="nav-item" (click)="close()">
       <span>♙</span>
       Beneficiaries
-    </a>
-
-    <a
-      routerLink="/transfer"
-      routerLinkActive="active"
-      class="nav-item"
-      *ngIf="permissions.canTransfer"
-      (click)="close()"
-    >
-      <span>↗</span>
-      Transfer Money
     </a>
 
     <a

@@ -31,12 +31,14 @@ export class BeneficiariesComponent {
   accounts: Account[] = [];
   loading = true;
   saving = false;
+  showForm = false;
   error = '';
   success = '';
   readonly pageSize = 10;
   currentPage = 1;
+  selectedCustomerFilter = 0;
 
-  form = { name: '', accountNumber: '', bankName: '', customerId: 0 };
+  form = { name: '', accountNumber: '', bankName: '', customerId: 0, customerAccountId: 0 };
 
   constructor() {
     afterNextRender(() => {
@@ -44,18 +46,17 @@ export class BeneficiariesComponent {
       this.api.getCustomers().subscribe({
         next: (data) => {
           this.customers = data;
+          this.syncCustomerSelection();
           this.filterOwnBeneficiaries(data);
-          const user = this.auth.getCurrentUser();
-          const customer = data.find(
-            (item) =>
-              item.email.toLowerCase() === user?.email.toLowerCase() ||
-              item.name.toLowerCase() === user?.name.toLowerCase(),
-          );
-          if (user?.role === 'customer' && customer) this.form.customerId = customer.id;
         },
         error: (err) => (this.error = this.message(err)),
       });
-      this.api.getAccounts().subscribe({ next: (data) => (this.accounts = data) });
+      this.api.getAccounts().subscribe({
+        next: (data) => {
+          this.accounts = data;
+          this.syncCustomerSelection();
+        },
+      });
     });
   }
 
@@ -67,15 +68,48 @@ export class BeneficiariesComponent {
     return this.accounts.find((account) => account.customerId === customerId)?.accountNumber ?? '-';
   }
 
+  get customerAccounts(): Account[] {
+    if (!this.form.customerId) return [];
+    return this.accounts.filter((account) => account.customerId === this.form.customerId);
+  }
+
+  get displayBeneficiaries(): Beneficiary[] {
+    if (!this.selectedCustomerFilter) return this.beneficiaries;
+    return this.beneficiaries.filter((beneficiary) => beneficiary.customerId === this.selectedCustomerFilter);
+  }
+
+  onCustomerFilterChange(customerId: number): void {
+    this.selectedCustomerFilter = customerId;
+    this.beneficiaries = this.selectedCustomerFilter
+      ? this.allBeneficiaries.filter((beneficiary) => beneficiary.customerId === this.selectedCustomerFilter)
+      : this.allBeneficiaries;
+    this.currentPage = 1;
+  }
+
+  onCustomerSelectionChange(): void {
+    const customerAccounts = this.customerAccounts;
+    this.form.customerAccountId = customerAccounts[0]?.id ?? 0;
+  }
+
   private filterOwnBeneficiaries(customers: Customer[]): void {
-    const user = this.auth.getCurrentUser();
-    if (user?.role !== 'customer') return;
-    const customer = customers.find(
-      (item) =>
-        item.email.toLowerCase() === user.email.toLowerCase() ||
-        item.name.toLowerCase() === user.name.toLowerCase(),
-    );
-    this.beneficiaries = this.allBeneficiaries.filter((item) => item.customerId === customer?.id);
+    this.beneficiaries = this.allBeneficiaries;
+    if (this.selectedCustomerFilter) {
+      this.onCustomerFilterChange(this.selectedCustomerFilter);
+    }
+  }
+
+  private syncCustomerSelection(): void {
+    if (!this.form.customerId && this.customers.length) {
+      const linkedCustomer = this.customers.find(
+        (customer) =>
+          customer.email.toLowerCase() === this.auth.getCurrentUser()?.email.toLowerCase() ||
+          customer.name.toLowerCase() === this.auth.getCurrentUser()?.name.toLowerCase(),
+      );
+      if (linkedCustomer) {
+        this.form.customerId = linkedCustomer.id;
+        this.onCustomerSelectionChange();
+      }
+    }
   }
 
   get totalPages(): number {
@@ -135,38 +169,17 @@ export class BeneficiariesComponent {
   }
 
   createBeneficiary(): void {
-    const user = this.auth.getCurrentUser();
-    if (this.permissions.isMaker) {
-      const list = JSON.parse(localStorage.getItem('mini-banking-beneficiary-requests') ?? '[]');
-      const request = {
-        id: Date.now(),
-        customerId:
-          this.form.customerId ||
-          this.customers.find(
-            (item) =>
-              item.email.toLowerCase() === user?.email.toLowerCase() ||
-              item.name.toLowerCase() === user?.name.toLowerCase(),
-          )?.id ||
-          0,
-        name: this.form.name,
-        accountNumber: this.form.accountNumber,
-        bankName: this.form.bankName,
-        status: 'PENDING_APPROVAL',
-        createdBy: user?.name ?? 'Maker',
-        createdAt: new Date().toISOString(),
-      };
-      localStorage.setItem('mini-banking-beneficiary-requests', JSON.stringify([...list, request]));
-      this.form = { name: '', accountNumber: '', bankName: '', customerId: 0 };
-      this.toast.show('Beneficiary request submitted for checker approval.');
-      this.changeDetector.detectChanges();
-      return;
-    }
-
     this.saving = true;
     this.error = '';
     this.success = '';
+    const payload = {
+      name: this.form.name,
+      accountNumber: this.form.accountNumber,
+      bankName: this.form.bankName,
+      customerId: this.form.customerId,
+    };
     this.api
-      .createBeneficiary(this.form)
+      .createBeneficiary(payload)
       .pipe(timeout({ each: 10000 }))
       .subscribe({
         next: (item) => {
@@ -174,7 +187,8 @@ export class BeneficiariesComponent {
           this.beneficiaries = [...this.beneficiaries, item];
           this.currentPage = Math.ceil(this.beneficiaries.length / this.pageSize);
           this.loading = false;
-          this.form = { name: '', accountNumber: '', bankName: '', customerId: 0 };
+          this.form = { name: '', accountNumber: '', bankName: '', customerId: 0, customerAccountId: 0 };
+          this.showForm = false;
           this.success = 'Beneficiary added successfully.';
           this.saving = false;
           this.toast.show('Beneficiary saved successfully.');

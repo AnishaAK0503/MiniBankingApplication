@@ -6,7 +6,6 @@ import { BankingApiService } from '../../core/services/banking-api.service';
 import { Transaction } from '../../core/models/transaction.model';
 import { Account } from '../../core/models/account.model';
 import { Customer } from '../../core/models/customer.model';
-import { AuthService } from '../../core/services/auth.service';
 import { RolePermissionsService } from '../../core/services/role-permissions.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { forkJoin, retry, timeout } from 'rxjs';
@@ -23,13 +22,13 @@ export class TransactionsComponent {
   private readonly api = inject(BankingApiService);
   private readonly changeDetector = inject(ChangeDetectorRef);
   private readonly route = inject(ActivatedRoute);
-  private readonly auth = inject(AuthService);
   readonly permissions = inject(RolePermissionsService);
   private readonly toast = inject(ToastService);
   private readonly csv = inject(CsvExportService);
   transactions: Transaction[] = [];
   accounts: Account[] = [];
   customers: Customer[] = [];
+  selectedCustomerId = 0;
   accountId = 0;
   loading = false;
   saving = false;
@@ -37,49 +36,8 @@ export class TransactionsComponent {
   success = '';
   readonly pageSize = 10;
   currentPage = 1;
-  readonly makerRequestPageSize = 10;
-  makerRequestCurrentPage = 1;
 
   form = { amount: 0, type: '', description: '' };
-
-  get makerRequests(): Array<{
-    id: number;
-    accountId: number;
-    amount: number;
-    description: string;
-    status: string;
-    createdBy: string;
-  }> {
-    if (!this.permissions.isMaker) return [];
-    const user = this.auth.getCurrentUser();
-    return JSON.parse(localStorage.getItem('mini-banking-transfer-requests') ?? '[]').filter(
-      (request: { createdBy: string }) => request.createdBy === user?.name,
-    );
-  }
-
-  get makerRequestTotalPages(): number {
-    return Math.max(1, Math.ceil(this.makerRequests.length / this.makerRequestPageSize));
-  }
-  get visibleMakerRequests(): Array<{
-    id: number;
-    accountId: number;
-    amount: number;
-    description: string;
-    status: string;
-    createdBy: string;
-  }> {
-    const start = (this.makerRequestCurrentPage - 1) * this.makerRequestPageSize;
-    return this.makerRequests.slice(start, start + this.makerRequestPageSize);
-  }
-  get makerRequestPageStart(): number {
-    return (this.makerRequestCurrentPage - 1) * this.makerRequestPageSize + 1;
-  }
-  get makerRequestPageEnd(): number {
-    return Math.min(
-      this.makerRequestCurrentPage * this.makerRequestPageSize,
-      this.makerRequests.length,
-    );
-  }
 
   get totalPages(): number {
     return Math.max(1, Math.ceil(this.transactions.length / this.pageSize));
@@ -99,6 +57,11 @@ export class TransactionsComponent {
     return this.accounts.find((account) => account.id === this.accountId);
   }
 
+  get customerAccounts(): Account[] {
+    if (!this.selectedCustomerId) return this.accounts;
+    return this.accounts.filter((account) => account.customerId === this.selectedCustomerId);
+  }
+
   constructor() {
     const id = Number(this.route.snapshot.paramMap.get('accountId'));
     if (id) this.accountId = id;
@@ -108,16 +71,7 @@ export class TransactionsComponent {
         .subscribe({
           next: ({ accounts, customers }) => {
             this.customers = customers;
-            const user = this.auth.getCurrentUser();
-            const customer = customers.find(
-              (item) =>
-                item.email.toLowerCase() === user?.email.toLowerCase() ||
-                item.name.toLowerCase() === user?.name.toLowerCase(),
-            );
-            this.accounts =
-              user?.role === 'customer'
-                ? accounts.filter((account) => account.customerId === customer?.id)
-                : accounts;
+            this.accounts = accounts;
             if (this.accountId) this.load();
             this.changeDetector.detectChanges();
           },
@@ -156,19 +110,6 @@ export class TransactionsComponent {
       .pipe(timeout({ each: 10000 }))
       .subscribe({
         next: ({ account, customers }) => {
-          const user = this.auth.getCurrentUser();
-          const customer = customers.find(
-            (item) =>
-              item.email.toLowerCase() === user?.email.toLowerCase() ||
-              item.name.toLowerCase() === user?.name.toLowerCase(),
-          );
-          if (user?.role === 'customer' && account.customerId !== customer?.id) {
-            this.error = 'You can only view transactions for your own account.';
-            this.loading = false;
-            this.toast.show(this.error, 'error');
-            this.changeDetector.detectChanges();
-            return;
-          }
           this.api
             .getTransactions(this.accountId)
             .pipe(retry({ count: 4, delay: 1000 }), timeout({ each: 10000 }))
@@ -199,6 +140,20 @@ export class TransactionsComponent {
       });
   }
 
+  selectCustomer(customerId: number): void {
+    this.selectedCustomerId = Number(customerId) || 0;
+    this.accountId = 0;
+    this.transactions = [];
+    this.error = '';
+    this.success = '';
+    if (!this.selectedCustomerId) return;
+    const firstAccount = this.customerAccounts[0];
+    if (firstAccount) {
+      this.accountId = firstAccount.id;
+      this.load();
+    }
+  }
+
   selectAccount(id: number): void {
     this.accountId = Number(id);
     if (this.accountId) this.load();
@@ -221,54 +176,7 @@ export class TransactionsComponent {
     );
   }
 
-  exportMakerRequestsCsv(): void {
-    this.csv.download(
-      'transaction-requests.csv',
-      ['Request', 'Account', 'Amount', 'Description', 'Status', 'Created By'],
-      this.makerRequests.map((request) => [
-        request.id,
-        request.accountId,
-        request.amount,
-        request.description || '',
-        request.status,
-        request.createdBy,
-      ]),
-    );
-  }
-
-  goToMakerRequestPage(page: number): void {
-    this.makerRequestCurrentPage = Math.min(Math.max(page, 1), this.makerRequestTotalPages);
-  }
-
   createTransaction(): void {
-    if (this.permissions.isMaker) {
-      const user = JSON.parse(localStorage.getItem('mini-banking-current-user') ?? '{}');
-      const requests = JSON.parse(localStorage.getItem('mini-banking-transfer-requests') ?? '[]');
-      const request = {
-        id: Date.now(),
-        accountId: this.accountId,
-        amount: this.form.amount,
-        description: this.form.description,
-        status: 'PENDING_APPROVAL',
-        createdBy: user.name ?? 'Maker',
-      };
-      localStorage.setItem(
-        'mini-banking-transfer-requests',
-        JSON.stringify([...requests, request]),
-      );
-      const logs = JSON.parse(localStorage.getItem('mini-banking-audit-logs') ?? '[]');
-      logs.unshift({
-        user: request.createdBy,
-        action: 'CREATE_TRANSACTION_REQUEST',
-        entity: `Transaction request #${request.id}`,
-        time: new Date().toLocaleString(),
-      });
-      localStorage.setItem('mini-banking-audit-logs', JSON.stringify(logs));
-      this.toast.show('Transaction request submitted for checker approval.');
-      this.form = { amount: 0, type: '', description: '' };
-      this.changeDetector.detectChanges();
-      return;
-    }
     this.saving = true;
     this.error = '';
     this.success = '';

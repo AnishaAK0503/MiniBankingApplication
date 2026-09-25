@@ -5,57 +5,12 @@
       <h1>Beneficiaries</h1>
       <p class="muted">Maintain the people and accounts you can transfer to.</p>
     </div>
+    <button class="primary-button" type="button" *ngIf="permissions.isAdmin || permissions.isMaker" (click)="showForm = true">Add beneficiary</button>
   </div>
   <div class="content-grid">
-    <form
-      class="panel form-panel"
-      *ngIf="permissions.isCustomer || permissions.isAdmin || permissions.isMaker"
-      (ngSubmit)="createBeneficiary()"
-      #beneficiaryForm="ngForm"
-    >
-      <h2>Add beneficiary</h2>
-      <label
-        >Name<input name="name" [(ngModel)]="form.name" required placeholder="Beneficiary name"
-      /></label>
-      <label
-        >Account number<input name="accountNumber" [(ngModel)]="form.accountNumber" required
-      /></label>
-      <label>Bank name<input name="bankName" [(ngModel)]="form.bankName" required /></label>
-      <label *ngIf="permissions.isAdmin"
-        >Customer<select name="customerId" [(ngModel)]="form.customerId" required>
-          <option [ngValue]="0" disabled>Select customer</option>
-          <option *ngFor="let customer of customers" [ngValue]="customer.id">
-            {{ customer.name }}
-          </option>
-        </select></label
-      >
-      <button class="primary-button" type="submit" [disabled]="beneficiaryForm.invalid || saving">
-        {{ saving ? 'Saving...' : 'Add beneficiary' }}
-      </button>
-      <p class="success" *ngIf="success">{{ success }}</p>
-      <p class="error" *ngIf="error">{{ error }}</p>
-    </form>
     <div class="panel">
-      <div class="panel-heading">
-        <div>
-          <h2>Beneficiary list</h2>
-          <p class="list-count" *ngIf="beneficiaries.length">
-            Showing {{ pageStart }}-{{ pageEnd }} of {{ beneficiaries.length }} beneficiaries
-          </p>
-        </div>
-        <div class="panel-actions">
-          <button
-            class="secondary-button"
-            type="button"
-            (click)="exportCsv()"
-            [disabled]="loading || !beneficiaries.length"
-          >
-            Export CSV</button
-          ><button class="secondary-button" type="button" (click)="load()" [disabled]="loading">
-            {{ loading ? 'Loading...' : 'Refresh' }}
-          </button>
-        </div>
-      </div>
+      <div class="panel-heading"><div><h2>Beneficiary list</h2><p class="list-count" *ngIf="beneficiaries.length">Showing {{ pageStart }}-{{ pageEnd }} of {{ beneficiaries.length }} beneficiaries</p></div><div class="panel-actions"><button class="secondary-button" type="button" (click)="exportCsv()" [disabled]="loading || !beneficiaries.length">Export CSV</button><button class="secondary-button" type="button" (click)="load()" [disabled]="loading">{{ loading ? 'Loading...' : 'Refresh' }}</button></div></div>
+      <label *ngIf="permissions.isAdmin || permissions.isChecker || permissions.isMaker" class="filter-field">Customer<select [ngModel]="selectedCustomerFilter" (ngModelChange)="onCustomerFilterChange($event)"><option [ngValue]="0">All customers</option><option *ngFor="let customer of customers" [ngValue]="customer.id">{{ customer.name }}</option></select></label>
       <p class="muted" *ngIf="loading">Loading beneficiaries...</p>
       <p class="muted" *ngIf="!loading && !beneficiaries.length">No beneficiaries found.</p>
       <div class="table-wrap" *ngIf="!loading && beneficiaries.length">
@@ -108,3 +63,11 @@
     </div>
   </div>
 </section>
+
+<div class="modal-backdrop" *ngIf="showForm" (click)="showForm = false">
+  <form class="modal-card" (ngSubmit)="createBeneficiary()" #beneficiaryForm="ngForm" (click)="$event.stopPropagation()">
+    <div class="modal-heading"><div><p class="eyebrow">PAYEE DIRECTORY</p><h2>Add beneficiary</h2></div><button class="modal-close" type="button" aria-label="Close" (click)="showForm = false">&times;</button></div>
+    <div class="form-grid"><label>Customer<select name="customerId" [(ngModel)]="form.customerId" required (ngModelChange)="onCustomerSelectionChange()"><option [ngValue]="0" disabled>Select customer</option><option *ngFor="let customer of customers" [ngValue]="customer.id">{{ customer.name }}</option></select></label><label>Customer account<select name="customerAccountId" [(ngModel)]="form.customerAccountId" required><option [ngValue]="0" [disabled]="customerAccounts.length > 0">{{ customerAccounts.length ? 'Select account' : 'No account available' }}</option><option *ngFor="let account of customerAccounts" [ngValue]="account.id">{{ account.accountNumber }} - {{ account.accountType }}</option></select></label><label>Name<input name="name" [(ngModel)]="form.name" required placeholder="Beneficiary name" /></label><label>Beneficiary account number<input name="accountNumber" [(ngModel)]="form.accountNumber" required /></label><label>Bank name<input name="bankName" [(ngModel)]="form.bankName" required /></label></div>
+    <div class="modal-actions"><button class="secondary-button" type="button" (click)="showForm = false">Cancel</button><button class="primary-button" type="submit" [disabled]="beneficiaryForm.invalid || saving">{{ saving ? 'Saving...' : 'Add beneficiary' }}</button></div>
+  </form>
+</div>

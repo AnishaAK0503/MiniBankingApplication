@@ -14,6 +14,10 @@ public class TransactionRequest {
     @NotBlank(message = "Transaction type is required")
     private String type;
 
+    private String counterpartyAccount;
+
+    private String referenceId;
+
     private String description;
 
 }

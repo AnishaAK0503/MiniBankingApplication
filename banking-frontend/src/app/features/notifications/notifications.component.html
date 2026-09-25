@@ -1,0 +1,20 @@
+<section class="feature-page">
+  <div class="page-heading">
+    <div><p class="eyebrow">WORKFLOW UPDATES</p><h1>Notifications</h1><p class="muted">Persistent updates from requests, approvals, and account activity.</p></div>
+    <button class="secondary-button" type="button" (click)="markAllRead()">Mark all as read</button>
+  </div>
+  <div class="panel notification-panel">
+    <div class="notification-filters">
+      <button type="button" [class.active]="filter === 'all'" (click)="filter = 'all'">All</button>
+      <button type="button" [class.active]="filter === 'unread'" (click)="filter = 'unread'">Unread</button>
+      <button type="button" [class.active]="filter === 'read'" (click)="filter = 'read'">Read</button>
+    </div>
+    <p class="muted" *ngIf="loading">Loading notifications...</p>
+    <article class="notification-row" *ngFor="let item of visible" [class.unread]="!item.read" (click)="markRead(item)">
+      <span class="notification-dot" aria-hidden="true"></span>
+      <div class="notification-content"><strong>{{ item.title }}</strong><p>{{ item.message }}</p><small>{{ item.createdAt | date:'medium' }}</small></div>
+      <button class="mark-read-button" type="button" *ngIf="!item.read" (click)="$event.stopPropagation(); markRead(item)">Mark as read</button>
+    </article>
+    <p class="muted" *ngIf="!loading && !visible.length">No notifications in this view.</p>
+  </div>
+</section>

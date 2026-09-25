@@ -4,7 +4,7 @@
 
 .list-count {
   margin: 5px 0 0;
-  color: #bdb4ca;
+  color: var(--text-muted);
   font-size: 13px;
 }
 
@@ -14,7 +14,7 @@
   justify-content: flex-end;
   gap: 14px;
   margin-top: 18px;
-  color: #ddd3e3;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
@@ -30,14 +30,23 @@
   gap: 16px;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  color: #ddd3e3;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
 }
 .request-status {
-  color: #00f0ff;
+  color: var(--info);
   font-weight: 700;
 }
 .request-error {
   margin-top: 14px;
   line-height: 1.45;
 }
+.account-filters { display: grid; grid-template-columns: minmax(220px, 1fr) 160px 160px; gap: 8px; margin-bottom: 14px; }
+.table-delete { margin-left: 10px; padding: 3px 6px; font-size: 11px; }
+.modal-backdrop { position: fixed; inset: 0; z-index: 1100; display: grid; place-items: center; padding: 20px; background: rgba(2, 8, 16, .72); backdrop-filter: blur(4px); }
+.modal-card { width: min(100%, 560px); background: var(--surface-elevated); border: 1px solid var(--border-strong); border-radius: var(--radius-lg); padding: 22px; box-shadow: var(--shadow-md); }
+.modal-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.modal-heading h2 { margin: 0; font-size: 19px; }
+.modal-close { background: transparent; border: 0; color: var(--text-secondary); font-size: 24px; padding: 0 4px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 22px; }
+@media (max-width: 700px) { .account-filters { grid-template-columns: 1fr; } }

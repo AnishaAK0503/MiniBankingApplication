@@ -6,11 +6,7 @@ export class RolePermissionsService {
   private readonly auth = inject(AuthService);
 
   get role(): UserRole {
-    return (this.auth.getCurrentUser()?.role?.toLowerCase() as UserRole | undefined) ?? 'customer';
-  }
-
-  get isCustomer(): boolean {
-    return this.role === 'customer';
+    return this.auth.getCurrentUser()?.role ?? 'maker';
   }
   get isMaker(): boolean {
     return this.role === 'maker';
@@ -23,23 +19,23 @@ export class RolePermissionsService {
   }
 
   get canManageCustomers(): boolean {
-    return this.isMaker || this.isAdmin;
+    return this.isMaker || this.isChecker || this.isAdmin;
   }
   get canManageAccounts(): boolean {
     return this.isMaker || this.isAdmin;
   }
   get canCreateTransactions(): boolean {
-    return this.isCustomer || this.isMaker || this.isAdmin;
+    return this.isMaker || this.isAdmin;
   }
   get canManageBeneficiaries(): boolean {
-    return this.isCustomer || this.isMaker || this.isAdmin;
+    return this.isMaker || this.isChecker || this.isAdmin;
   }
   get canReviewTransactions(): boolean {
     return this.isChecker || this.isAdmin;
   }
 
   get canTransfer(): boolean {
-    return this.isCustomer;
+    return this.isMaker || this.isAdmin;
   }
   get canManageUsers(): boolean {
     return this.isAdmin;
@@ -48,7 +44,7 @@ export class RolePermissionsService {
     return this.isAdmin;
   }
   get canRequestAccount(): boolean {
-    return this.isCustomer;
+    return this.isMaker;
   }
   get canReviewAccountRequests(): boolean {
     return this.isMaker || this.isChecker || this.isAdmin;

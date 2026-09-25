@@ -1,108 +1,96 @@
 # Mini Banking Application
 
-A full-stack banking management application built with Angular and Spring Boot. The application allows users to manage customers, bank accounts, transactions, and beneficiaries through a simple dashboard.
+Mini Banking is a full-stack banking operations application built with Angular, Spring Boot, PostgreSQL, and Keycloak. The current project scope covers the first four weeks of the GCT training program.
 
-## Project Overview
+## Current Scope
 
-This project is divided into two parts:
+- Customer management
+- Bank account management
+- Transaction history and deposits/withdrawals
+- Beneficiary management
+- Maker-checker customer and account request workflows
+- Persistent notifications for Admin, Maker, and Checker
+- Keycloak authentication with JWT validation
+- Role-based authorization for ADMIN, MAKER, and CHECKER
+- PostgreSQL persistence with JPA/Hibernate
+- Responsive dark banking operations UI
+- Pagination, search/filter controls, CSV export, loading, empty, and error states
 
-- `banking-frontend`: Angular web application
-- `banking-backend`: Spring Boot REST API connected to PostgreSQL
+Consent Management is intentionally deferred for a later phase and is not part of the current application scope.
 
-The frontend communicates with the backend through REST APIs.
+## Roles
 
-## Implemented Features
+- ADMIN: direct customer/account creation, administration, workflow visibility, and controlled deletion with a mandatory reason
+- MAKER: creates customer/account requests, manages beneficiaries, views transactions, and sees request history
+- CHECKER: reviews and approves/rejects customer/account requests
 
-### Dashboard
+A Customer is a PostgreSQL banking record. Customers do not log in and there is no CUSTOMER Keycloak role.
 
-- Displays total number of customers
-- Displays total number of accounts
-- Displays total number of transactions
-- Displays total number of beneficiaries
-- Displays total account balance
-- Provides quick navigation to each banking feature
+## Weekly Progress
 
-### Customer Management
-
-- View all customers
-- Create a new customer
-- Validate customer name, email, and phone number
-- Display backend and network errors
-
-### Account Management
-
-- View all bank accounts
-- Create a new account
-- Select the account type:
-  - Checking
-  - Savings
-- Set the opening balance
-- Assign an account to a customer
-- View account transaction history
-
-### Transaction Management
-
-- Search for an account using its ID
-- View transaction history
-- Create deposits
-- Create withdrawals
-- Add transaction descriptions
-- Display transaction date, type, description, and amount
-- Backend validation for insufficient balance
-
-### Beneficiary Management
-
-- View all beneficiaries
-- Add a beneficiary
-- Store beneficiary name, account number, bank name, and customer ID
-- Delete a beneficiary
-
-## Technologies Used
-
-### Frontend
-
-- Angular
-- TypeScript
-- HTML
-- CSS
-- RxJS
-- Angular Forms
-- Angular Router
-
-### Backend
-
-- Java 17
-- Spring Boot
-- Spring Web MVC
-- Spring Data JPA
-- Hibernate
-- PostgreSQL
-- Lombok
-- Maven
+- [Work_week01.md](Work_week01.md): project setup, Git, Spring Boot, PostgreSQL, REST basics
+- [Work_week02.md](Work_week02.md): banking CRUD APIs, JPA entities, DTOs, validation, and exception handling
+- [Work_week03.md](Work_week03.md): Angular frontend integration, listing screens, pagination, CSV export, and maker-checker foundations
+- [Work_week04.md](Work_week04.md): Keycloak, JWT/OAuth2, role protection, approval workflows, notifications, and UI improvements
 
 ## Project Structure
 
 ```text
 MiniBankingApp/
-├── banking-backend/
-│   ├── src/main/java/com/banfico/banking/
-│   │   ├── controller/
-│   │   ├── service/
-│   │   ├── repository/
-│   │   ├── entity/
-│   │   ├── dto/
-│   │   └── exception/
-│   ├── src/main/resources/
-│   │   └── application.properties
-│   └── pom.xml
-│
-├── banking-frontend/
-│   ├── src/app/
-│   │   ├── core/
-│   │   ├── features/
-│   │   └── shared/
-│   ├── src/environments/
-│   ├── package.json
-│   └── angular.json
-│
+├── banking-backend/   Spring Boot REST API
+├── banking-frontend/  Angular application
+├── Work_week01.md
+├── Work_week02.md
+├── Work_week03.md
+├── Work_week04.md
 └── README.md
+```
+
+## Run Locally
+
+### Backend
+
+```powershell
+cd banking-backend
+.\mvnw.cmd spring-boot:run
+```
+
+The backend uses PostgreSQL and listens on `http://localhost:8080`.
+
+### Frontend
+
+```powershell
+cd banking-frontend
+npm install
+npm start
+```
+
+Open `http://localhost:4200`.
+
+## Configuration
+
+Backend configuration is in [banking-backend/src/main/resources/application.properties](banking-backend/src/main/resources/application.properties).
+
+The current local setup expects:
+
+- PostgreSQL database: `bankingdb`
+- Keycloak issuer: `http://localhost:8081/realms/mini-banking`
+- Frontend API URL: `http://localhost:8080/api`
+
+The database migration script is [migration.sql](banking-backend/src/main/resources/db/migration.sql). It creates the request and notification tables without Hibernate timestamp auto-conversion.
+
+## Verification
+
+```powershell
+cd banking-frontend
+npm run build
+```
+
+```powershell
+cd banking-backend
+.\mvnw.cmd test
+```
+
+## Deferred Work
+
+Consent creation, consent approval/rejection, and consent-based transaction guarding are deferred until the next project phase. They should be reintroduced as a separate feature without changing the completed Weeks 1-4 banking and authentication work.

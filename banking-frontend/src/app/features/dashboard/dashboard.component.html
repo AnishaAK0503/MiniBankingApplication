@@ -3,7 +3,7 @@
     <div>
       <p class="eyebrow">MINI BANKING SYSTEM</p>
       <h1>GOOD EVENING, {{ userName }}</h1>
-      <p class="subtitle">Welcome back, {{ currentUser?.role || 'customer' }} profile.</p>
+      <p class="subtitle">Welcome back, {{ currentUser?.role || 'employee' }} profile.</p>
     </div>
     <div class="user-badge">{{ initials }}</div>
   </div>
@@ -15,7 +15,7 @@
   </div>
 
   <div class="stats-grid">
-    <div class="stat-card" *ngIf="currentUser?.role !== 'customer'">
+    <div class="stat-card">
       <div class="stat-icon">C</div>
       <div>
         <p>Customers</p>
@@ -75,7 +75,7 @@
     <a
       routerLink="/accounts"
       class="action-card"
-      *ngIf="permissions.canManageAccounts || permissions.isCustomer || permissions.isChecker"
+      *ngIf="permissions.canManageAccounts || permissions.isChecker"
     >
       <span>02</span>
       <h3>Accounts</h3>
@@ -108,12 +108,6 @@
               : 'View transactions'
         }}
       </p>
-    </a>
-
-    <a routerLink="/transfer" class="action-card" *ngIf="permissions.canTransfer">
-      <span>05</span>
-      <h3>Transfer Money</h3>
-      <p>Send money to a beneficiary</p>
     </a>
 
     <a routerLink="/approvals" class="action-card" *ngIf="permissions.canReviewTransactions">

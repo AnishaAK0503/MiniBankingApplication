@@ -10,8 +10,8 @@
   gap: 18px;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  color: #ddd3e3;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
 }
 .request-row strong {
   color: #fff;
@@ -26,12 +26,12 @@
 }
 .lookup-panel select {
   min-width: min(100%, 520px);
-  background: #241132;
-  border: 1px solid #00f0ff;
-  color: #fff;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
 }
 .lookup-panel select option {
-  background: #241132;
+  background: var(--bg-secondary);
   color: #fff;
   padding: 8px;
 }

@@ -8,13 +8,25 @@
   </div>
   <div class="panel lookup-panel">
     <label
+      >Select customer<select
+        name="selectedCustomerId"
+        [ngModel]="selectedCustomerId"
+        (ngModelChange)="selectCustomer($event)"
+      >
+        <option [ngValue]="0">Select a customer</option>
+        <option *ngFor="let customer of customers" [ngValue]="customer.id">
+          {{ customer.name }}
+        </option>
+      </select></label
+    >
+    <label
       >Select account<select
         name="accountId"
         [ngModel]="accountId"
         (ngModelChange)="selectAccount($event)"
       >
-        <option [ngValue]="0">Select an account</option>
-        <option *ngFor="let account of accounts" [ngValue]="account.id">
+        <option [ngValue]="0">{{ selectedCustomerId ? 'No account available' : 'Select an account' }}</option>
+        <option *ngFor="let account of customerAccounts" [ngValue]="account.id">
           {{ accountLabel(account) }}
         </option>
       </select></label
@@ -41,7 +53,7 @@
       (ngSubmit)="createTransaction()"
       #transactionForm="ngForm"
     >
-      <h2>{{ permissions.isMaker ? 'New transaction request' : 'New transaction' }}</h2>
+      <h2>Execute transaction</h2>
       <label
         >Amount<input
           name="amount"
@@ -64,7 +76,7 @@
           placeholder="Optional note"
         ></textarea></label
       ><button class="primary-button" type="submit" [disabled]="transactionForm.invalid || saving">
-        {{ saving ? 'Saving...' : permissions.isMaker ? 'Submit request' : 'Record transaction' }}
+        {{ saving ? 'Saving...' : 'Execute transaction' }}
       </button>
       <p class="success" *ngIf="success">{{ success }}</p>
       <p class="error" *ngIf="error">{{ error }}</p>
@@ -125,50 +137,6 @@
         </button>
       </div>
       <p class="error" *ngIf="error">{{ error }}</p>
-    </div>
-  </div>
-  <div class="panel maker-requests" *ngIf="permissions.isMaker">
-    <div class="panel-heading">
-      <div>
-        <h2>My Requests</h2>
-        <p class="list-count" *ngIf="makerRequests.length">
-          Showing {{ makerRequestPageStart }}-{{ makerRequestPageEnd }} of
-          {{ makerRequests.length }} requests
-        </p>
-      </div>
-      <button
-        class="secondary-button"
-        type="button"
-        (click)="exportMakerRequestsCsv()"
-        [disabled]="!makerRequests.length"
-      >
-        Export CSV
-      </button>
-    </div>
-    <p class="muted" *ngIf="!makerRequests.length">
-      No requests created yet. Submit a transaction request above.
-    </p>
-    <div *ngFor="let request of visibleMakerRequests" class="request-row">
-      <strong>Request</strong><span>Account</span><span>{{ request.amount | currency: 'INR' }}</span
-      ><span class="request-status">{{ request.status }}</span>
-    </div>
-    <div class="pagination" *ngIf="makerRequestTotalPages > 1">
-      <button
-        class="secondary-button"
-        type="button"
-        (click)="goToMakerRequestPage(makerRequestCurrentPage - 1)"
-        [disabled]="makerRequestCurrentPage === 1"
-      >
-        Previous</button
-      ><span>Page {{ makerRequestCurrentPage }} of {{ makerRequestTotalPages }}</span
-      ><button
-        class="secondary-button"
-        type="button"
-        (click)="goToMakerRequestPage(makerRequestCurrentPage + 1)"
-        [disabled]="makerRequestCurrentPage === makerRequestTotalPages"
-      >
-        Next
-      </button>
     </div>
   </div>
 </section>

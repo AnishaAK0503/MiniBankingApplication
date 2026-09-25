@@ -28,9 +28,10 @@ export class AccountsComponent {
   private readonly csv = inject(CsvExportService);
   requests: AccountRequest[] = [];
   showRequestForm = false;
+  showCreateForm = false;
   requestSaving = false;
   requestError = '';
-  requestForm = { accountType: 'SAVINGS', remarks: '' };
+  requestForm = { customerId: 0, accountType: 'SAVINGS', remarks: '' };
   accounts: Account[] = [];
   private allAccounts: Account[] = [];
   customers: Customer[] = [];
@@ -40,6 +41,12 @@ export class AccountsComponent {
   success = '';
   readonly pageSize = 10;
   currentPage = 1;
+  accountSearch = '';
+  accountTypeFilter = 'ALL';
+  accountStatusFilter = 'ALL';
+  deleteTarget: Account | null = null;
+  deleteReason = '';
+  deleting = false;
 
   form = { accountNumber: '', accountType: '', balance: 0, customerId: 0 };
   get selectedHolderName(): string {
@@ -60,7 +67,6 @@ export class AccountsComponent {
         next: (data) => {
           this.customers = data;
           this.filterOwnAccounts(data);
-          if (this.permissions.isCustomer) this.loadOwnRequests();
         },
         error: (err) => (this.error = this.message(err)),
       });
@@ -91,51 +97,64 @@ export class AccountsComponent {
   }
 
   submitAccountRequest(): void {
-    const id = this.customerId();
-    if (!id) {
-      this.requestError =
-        'No matching customer profile was found for this login. Ask an Admin to create a Customer record with the same email before requesting an account.';
-      this.toast.show('Your customer profile could not be found.', 'error');
-      this.changeDetector.detectChanges();
-      return;
-    }
+    const id = this.requestForm.customerId || this.customerId();
     this.requestSaving = true;
-    this.api.createAccountRequest({ customerId: id, ...this.requestForm }).subscribe({
-      next: (request) => {
-        this.requests = [request, ...this.requests];
-        this.requestSaving = false;
-        this.showRequestForm = false;
-        this.requestForm = { accountType: 'SAVINGS', remarks: '' };
-        this.toast.show('Account request submitted successfully.');
-        this.changeDetector.detectChanges();
-      },
-      error: (err) => {
-        this.requestSaving = false;
-        this.requestError = this.message(err);
-        this.toast.show(this.requestError, 'error');
-        this.changeDetector.detectChanges();
-      },
-    });
+    this.requestError = '';
+    this.api
+      .createAccountRequest({
+        ...(id ? { customerId: id } : {}),
+        accountType: this.requestForm.accountType,
+        remarks: this.requestForm.remarks,
+      })
+      .subscribe({
+        next: (request) => {
+          this.api.submitAccountRequest(request.id, this.auth.getCurrentUser()?.name ?? 'Maker').subscribe({
+            next: (submitted) => {
+              this.requests = [submitted, ...this.requests];
+              this.requestSaving = false;
+              this.showRequestForm = false;
+              this.requestForm = { customerId: 0, accountType: 'SAVINGS', remarks: '' };
+              this.toast.show('Account request submitted successfully.');
+              this.changeDetector.detectChanges();
+            },
+            error: (err) => {
+              this.requestSaving = false;
+              this.requestError = this.message(err);
+              this.toast.show(this.requestError, 'error');
+              this.changeDetector.detectChanges();
+            },
+          });
+        },
+        error: (err) => {
+          this.requestSaving = false;
+          this.requestError = this.message(err);
+          this.toast.show(this.requestError, 'error');
+          this.changeDetector.detectChanges();
+        },
+      });
   }
 
   private filterOwnAccounts(customers: Customer[]): void {
-    const user = this.auth.getCurrentUser();
-    if (user?.role !== 'customer') return;
-    const customer = customers.find(
-      (item) =>
-        item.email.toLowerCase() === user.email.toLowerCase() ||
-        item.name.toLowerCase() === user.name.toLowerCase(),
-    );
-    this.accounts = this.allAccounts.filter((account) => account.customerId === customer?.id);
+    this.accounts = this.allAccounts;
   }
 
   get totalPages(): number {
-    return Math.max(1, Math.ceil(this.accounts.length / this.pageSize));
+    return Math.max(1, Math.ceil(this.filteredAccounts.length / this.pageSize));
+  }
+
+  get filteredAccounts(): Account[] {
+    const term = this.accountSearch.trim().toLowerCase();
+    return this.accounts.filter((account) => {
+      const matchesSearch = !term || [account.accountNumber, account.customerName, account.accountType].some((value) => value?.toLowerCase().includes(term));
+      const matchesType = this.accountTypeFilter === 'ALL' || account.accountType?.toUpperCase() === this.accountTypeFilter;
+      const matchesStatus = this.accountStatusFilter === 'ALL' || (account.status || 'ACTIVE').toUpperCase() === this.accountStatusFilter;
+      return matchesSearch && matchesType && matchesStatus;
+    });
   }
 
   get visibleAccounts(): Account[] {
     const start = (this.currentPage - 1) * this.pageSize;
-    return this.accounts.slice(start, start + this.pageSize);
+    return this.filteredAccounts.slice(start, start + this.pageSize);
   }
 
   get pageStart(): number {
@@ -143,7 +162,7 @@ export class AccountsComponent {
   }
 
   get pageEnd(): number {
-    return Math.min(this.currentPage * this.pageSize, this.accounts.length);
+    return Math.min(this.currentPage * this.pageSize, this.filteredAccounts.length);
   }
 
   loadAccounts(): void {
@@ -203,6 +222,7 @@ export class AccountsComponent {
           this.loading = false;
           this.success = 'Account created successfully.';
           this.form = { accountNumber: '', accountType: '', balance: 0, customerId: 0 };
+          this.showCreateForm = false;
           this.saving = false;
           this.toast.show('Account saved successfully.');
           this.changeDetector.detectChanges();
@@ -214,6 +234,23 @@ export class AccountsComponent {
           this.changeDetector.detectChanges();
         },
       });
+  }
+
+  removeAccount(): void {
+    if (!this.deleteTarget || !this.deleteReason.trim()) return;
+    this.deleting = true;
+    this.api.deleteAccount(this.deleteTarget.id, this.deleteReason.trim()).subscribe({
+      next: () => {
+        this.allAccounts = this.allAccounts.filter((account) => account.id !== this.deleteTarget?.id);
+        this.accounts = this.allAccounts;
+        this.deleteTarget = null;
+        this.deleteReason = '';
+        this.deleting = false;
+        this.toast.show('Account deleted and workflow notifications sent.');
+        this.changeDetector.detectChanges();
+      },
+      error: (err) => { this.deleting = false; this.toast.show(this.message(err), 'error'); this.changeDetector.detectChanges(); },
+    });
   }
   private message(error: any): string {
     if (error?.error && typeof error.error === 'object')

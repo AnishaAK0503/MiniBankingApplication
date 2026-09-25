@@ -5,6 +5,7 @@
       <h1>Accounts</h1>
       <p class="muted">Create accounts and open transaction history.</p>
     </div>
+    <button class="primary-button" type="button" *ngIf="permissions.isAdmin" (click)="showCreateForm = true">Create account</button>
   </div>
   <div class="content-grid">
     <div class="panel customer-request-panel" *ngIf="permissions.canRequestAccount">
@@ -18,6 +19,14 @@
         </button>
       </div>
       <form class="form-panel" *ngIf="showRequestForm" (ngSubmit)="submitAccountRequest()">
+        <label *ngIf="permissions.isMaker"
+          >Customer<select name="requestCustomerId" [(ngModel)]="requestForm.customerId" required>
+            <option [ngValue]="0" disabled>Select customer</option>
+            <option *ngFor="let customer of customers" [ngValue]="customer.id">
+              {{ customer.name }}
+            </option>
+          </select></label
+        >
         <label
           >Account type<select name="requestType" [(ngModel)]="requestForm.accountType" required>
             <option value="SAVINGS">Savings Account</option>
@@ -47,83 +56,12 @@
       </div>
       <p class="muted" *ngIf="!requests.length && !showRequestForm">No account requests yet.</p>
     </div>
-    <form
-      class="panel form-panel"
-      *ngIf="permissions.isAdmin"
-      (ngSubmit)="createAccount()"
-      #accountForm="ngForm"
-    >
-      <h2>New account</h2>
-      <label
-        >Account number<input
-          name="accountNumber"
-          [(ngModel)]="form.accountNumber"
-          required
-          placeholder="e.g. 10001234"
-      /></label>
-      <label
-        >Account type<select name="accountType" [(ngModel)]="form.accountType" required>
-          <option value="" disabled>Select type</option>
-          <option value="CURRENT">Current</option>
-          <option value="SAVINGS">Savings</option>
-        </select></label
-      >
-      <label
-        >Opening balance<input
-          name="balance"
-          type="number"
-          min="0"
-          step="0.01"
-          [(ngModel)]="form.balance"
-          required
-      /></label>
-      <label
-        >Account holder<select name="customerId" [(ngModel)]="form.customerId" required>
-          <option [ngValue]="0" disabled>Select account holder</option>
-          <option *ngFor="let customer of customers" [ngValue]="customer.id">
-            {{ customer.name }}
-          </option>
-        </select></label
-      >
-      <label
-        >Account holder name<input
-          name="accountHolderName"
-          [value]="selectedHolderName"
-          readonly
-          placeholder="Selected holder appears here"
-      /></label>
-      <button class="primary-button" type="submit" [disabled]="accountForm.invalid || saving">
-        {{ saving ? 'Saving...' : 'Create account' }}
-      </button>
-      <p class="success" *ngIf="success">{{ success }}</p>
-      <p class="error" *ngIf="error">{{ error }}</p>
-    </form>
     <div class="panel">
       <div class="panel-heading">
-        <div>
-          <h2>Account list</h2>
-          <p class="list-count" *ngIf="accounts.length">
-            Showing {{ pageStart }}-{{ pageEnd }} of {{ accounts.length }} accounts
-          </p>
-        </div>
-        <div class="panel-actions">
-          <button
-            class="secondary-button"
-            type="button"
-            (click)="exportCsv()"
-            [disabled]="loading || !accounts.length"
-          >
-            Export CSV</button
-          ><button
-            class="secondary-button"
-            type="button"
-            (click)="loadAccounts()"
-            [disabled]="loading"
-          >
-            {{ loading ? 'Loading...' : 'Refresh' }}
-          </button>
-        </div>
+        <div><h2>Account list</h2><p class="list-count" *ngIf="accounts.length">Showing {{ pageStart }}-{{ pageEnd }} of {{ accounts.length }} accounts</p></div>
+        <div class="panel-actions"><button class="secondary-button" type="button" (click)="exportCsv()" [disabled]="loading || !accounts.length">Export CSV</button><button class="secondary-button" type="button" (click)="loadAccounts()" [disabled]="loading">{{ loading ? 'Loading...' : 'Refresh' }}</button></div>
       </div>
+      <div class="account-filters"><input type="search" [(ngModel)]="accountSearch" (ngModelChange)="currentPage = 1" placeholder="Search account, customer, or type" /><select [(ngModel)]="accountTypeFilter" (ngModelChange)="currentPage = 1"><option value="ALL">All types</option><option value="SAVINGS">Savings</option><option value="CURRENT">Current</option></select><select [(ngModel)]="accountStatusFilter" (ngModelChange)="currentPage = 1"><option value="ALL">All statuses</option><option value="ACTIVE">Active</option><option value="INACTIVE">Inactive</option></select></div>
       <p class="muted" *ngIf="loading">Loading accounts...</p>
       <p class="muted" *ngIf="!loading && !accounts.length">No accounts found.</p>
       <div class="table-wrap" *ngIf="!loading && accounts.length">
@@ -149,6 +87,7 @@
                 <a class="text-link" [routerLink]="['/accounts', account.id, 'transactions']"
                   >Transactions</a
                 >
+                <button class="danger-button table-delete" *ngIf="permissions.isAdmin" type="button" (click)="deleteTarget = account">Delete</button>
               </td>
             </tr>
           </tbody>
@@ -177,3 +116,21 @@
     </div>
   </div>
 </section>
+
+<div class="modal-backdrop" *ngIf="showCreateForm" (click)="showCreateForm = false">
+  <form class="modal-card" (ngSubmit)="createAccount()" #accountForm="ngForm" (click)="$event.stopPropagation()">
+    <div class="modal-heading"><div><p class="eyebrow">ACCOUNT MANAGEMENT</p><h2>Create account</h2></div><button class="modal-close" type="button" aria-label="Close" (click)="showCreateForm = false">&times;</button></div>
+    <div class="form-grid"><label>Account number<input name="accountNumber" [(ngModel)]="form.accountNumber" required placeholder="e.g. 10001234" /></label><label>Account type<select name="accountType" [(ngModel)]="form.accountType" required><option value="" disabled>Select type</option><option value="CURRENT">Current</option><option value="SAVINGS">Savings</option></select></label><label>Opening balance<input name="balance" type="number" min="0" step="0.01" [(ngModel)]="form.balance" required /></label><label>Account holder<select name="customerId" [(ngModel)]="form.customerId" required><option [ngValue]="0" disabled>Select account holder</option><option *ngFor="let customer of customers" [ngValue]="customer.id">{{ customer.name }}</option></select></label><label>Account holder name<input name="accountHolderName" [value]="selectedHolderName" readonly /></label></div>
+    <p class="success" *ngIf="success">{{ success }}</p><p class="error" *ngIf="error">{{ error }}</p>
+    <div class="modal-actions"><button class="secondary-button" type="button" (click)="showCreateForm = false">Cancel</button><button class="primary-button" type="submit" [disabled]="accountForm.invalid || saving">{{ saving ? 'Saving...' : 'Create account' }}</button></div>
+  </form>
+</div>
+
+<div class="modal-backdrop" *ngIf="deleteTarget" (click)="deleteTarget = null">
+  <form class="modal-card delete-modal" (ngSubmit)="removeAccount()" (click)="$event.stopPropagation()">
+    <div class="modal-heading"><div><p class="eyebrow">ADMIN CONTROL</p><h2>Delete account</h2></div><button class="modal-close" type="button" aria-label="Close" (click)="deleteTarget = null">&times;</button></div>
+    <p class="muted">Delete {{ deleteTarget?.accountNumber }}? Provide a reason. Maker and Checker users will be notified.</p>
+    <label>Deletion reason<textarea name="deleteReason" [(ngModel)]="deleteReason" rows="3" required placeholder="Reason for deletion"></textarea></label>
+    <div class="modal-actions"><button class="secondary-button" type="button" (click)="deleteTarget = null">Cancel</button><button class="danger-button" type="submit" [disabled]="!deleteReason.trim() || deleting">{{ deleting ? 'Deleting...' : 'Delete account' }}</button></div>
+  </form>
+</div>

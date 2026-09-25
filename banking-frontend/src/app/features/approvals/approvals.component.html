@@ -3,99 +3,39 @@
     <div>
       <p class="eyebrow">MAKER-CHECKER CONTROL</p>
       <h1>Pending Approvals</h1>
-      <p class="muted">Review requests created by Makers before they are completed.</p>
+      <p class="muted">Review customer and account requests created by Makers.</p>
     </div>
   </div>
 
   <div class="panel">
     <div class="panel-heading">
-      <div>
-        <h2>Approval list</h2>
-        <p class="list-count" *ngIf="pendingItems.length">
-          Showing {{ pageStart }}-{{ pageEnd }} of {{ pendingItems.length }} approvals
-        </p>
-      </div>
-      <div class="panel-actions">
-        <button class="secondary-button" type="button" (click)="refresh()" [disabled]="loading">
-          {{ loading ? 'Refreshing...' : 'Refresh' }}</button
-        ><button
-          class="secondary-button"
-          type="button"
-          (click)="exportCsv()"
-          [disabled]="!pendingItems.length"
-        >
-          Export CSV
-        </button>
-      </div>
+      <h2>Approval list</h2>
+      <button class="secondary-button" type="button" (click)="refresh()" [disabled]="loading">
+        {{ loading ? 'Refreshing...' : 'Refresh' }}
+      </button>
     </div>
-
     <p class="error" *ngIf="error">{{ error }}</p>
-    <p class="muted" *ngIf="!loading && !pendingItems.length && !error">
-      No requests pending approval.
-    </p>
+    <p class="muted" *ngIf="!loading && !items.length && !error">No requests pending approval.</p>
     <div class="approval-list">
-      <article class="approval-item" *ngFor="let item of visiblePendingItems">
+      <article class="approval-item" *ngFor="let item of items">
         <div class="approval-main">
-          <span class="request-id">{{
-            item.type === 'account'
-              ? 'Account Request'
-              : item.type === 'transaction'
-                ? 'Transaction Request'
-                : 'Beneficiary Request'
-          }}</span>
-          <h2>{{ item.displayName }}</h2>
+          <span class="request-id">{{ item.title }}</span>
+          <h2>{{ item.details }}</h2>
           <div class="approval-details">
-            <span><strong>Customer</strong>{{ item.customerName }}</span>
-            <span><strong>Created by</strong>{{ item.createdBy }}</span>
-            <span><strong>Requested</strong>{{ item.createdAt | date: 'medium' }}</span>
-            <span><strong>Remarks</strong>{{ item.remarks || 'No remarks' }}</span>
+            <span><strong>Requested by</strong>{{ item.requestedBy }}</span>
+            <span><strong>Created</strong>{{ item.createdAt | date: 'medium' }}</span>
+            <span><strong>Status</strong>{{ item.status }}</span>
           </div>
         </div>
         <div class="approval-actions">
-          <button class="primary-button" type="button" (click)="approveItem(item)">Approve</button>
-          <button class="danger-button" type="button" (click)="rejectItem(item)">Reject</button>
+          <button class="primary-button" type="button" (click)="approve(item)">Approve</button>
+          <button class="danger-button" type="button" (click)="beginReject(item)">Reject</button>
         </div>
-        <div class="reject-box" *ngIf="rejectingRequestId === item.id">
-          <input
-            class="reject-input"
-            type="text"
-            [(ngModel)]="rejectionReason[item.id]"
-            placeholder="Enter rejection reason"
-          />
-          <div class="reject-actions">
-            <button
-              class="primary-button small-button"
-              type="button"
-              (click)="submitRejectItem(item)"
-            >
-              Submit
-            </button>
-            <button class="secondary-button small-button" type="button" (click)="cancelReject()">
-              Cancel
-            </button>
-          </div>
+        <div class="reject-box" *ngIf="rejectingId === item.id">
+          <input class="reject-input" type="text" [(ngModel)]="rejectionReason[item.id]" placeholder="Rejection reason" />
+          <button class="danger-button" type="button" (click)="reject(item)" [disabled]="!(rejectionReason[item.id] || '').trim()">Submit rejection</button>
         </div>
       </article>
-    </div>
-
-    <div class="pagination" *ngIf="totalPages > 1">
-      <button
-        class="secondary-button"
-        type="button"
-        (click)="goToPage(currentPage - 1)"
-        [disabled]="currentPage === 1"
-      >
-        Previous
-      </button>
-      <span>Page {{ currentPage }} of {{ totalPages }}</span>
-      <button
-        class="secondary-button"
-        type="button"
-        (click)="goToPage(currentPage + 1)"
-        [disabled]="currentPage === totalPages"
-      >
-        Next
-      </button>
     </div>
   </div>
 </section>

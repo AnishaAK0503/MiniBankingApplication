@@ -18,8 +18,11 @@ public class BankTransaction {
     private Long id;
     private Double amount;
     private String type;
+    private String counterpartyAccount;
+    private String referenceId;
     private String description;
     private LocalDateTime  createdAt;
+    private Double balanceAfter;
 
     @ManyToOne
     @JoinColumn(name = "account_id")

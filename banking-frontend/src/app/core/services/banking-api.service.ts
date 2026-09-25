@@ -7,6 +7,7 @@ import { Beneficiary } from '../models/beneficiary.model';
 import { Customer } from '../models/customer.model';
 import { Transaction } from '../models/transaction.model';
 import { AccountRequest } from '../models/account-request.model';
+import { Notification } from '../models/notification.model';
 
 @Injectable({ providedIn: 'root' })
 export class BankingApiService {
@@ -17,8 +18,18 @@ export class BankingApiService {
     return this.http.get<Customer[]>(`${this.apiUrl}/customers`);
   }
 
+  createCustomer(customer: Omit<Customer, 'id'>): Observable<Customer> {
+    return this.http.post<Customer>(`${this.apiUrl}/customers`, customer);
+  }
+
   getAccounts(): Observable<Account[]> {
     return this.http.get<Account[]>(`${this.apiUrl}/accounts`);
+  }
+  deleteCustomer(id: number, reason: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/customers/${id}`, { body: { reason } });
+  }
+  deleteAccount(id: number, reason: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/accounts/${id}`, { body: { reason } });
   }
   getAccount(id: number): Observable<Account> {
     return this.http.get<Account>(`${this.apiUrl}/accounts/${id}`);
@@ -51,7 +62,7 @@ export class BankingApiService {
   }
 
   createAccountRequest(
-    request: Pick<AccountRequest, 'customerId' | 'accountType' | 'remarks'>,
+    request: Pick<AccountRequest, 'accountType' | 'remarks'> & { customerId?: number },
   ): Observable<AccountRequest> {
     return this.http.post<AccountRequest>(`${this.apiUrl}/account-requests`, request);
   }
@@ -81,5 +92,41 @@ export class BankingApiService {
       actorName,
       rejectionReason,
     });
+  }
+
+  createCustomerRequest(customer: Omit<Customer, 'id'>): Observable<any> {
+    return this.http.post(`${this.apiUrl}/customer-requests`, customer);
+  }
+
+  getCustomerRequests(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/customer-requests`);
+  }
+
+  getPendingCustomerRequests(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/customer-requests/pending-approval`);
+  }
+
+  approveCustomerRequest(id: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/customer-requests/${id}/approve`, {});
+  }
+
+  rejectCustomerRequest(id: number, reason: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/customer-requests/${id}/reject`, null, { params: { reason } });
+  }
+
+  getNotifications(): Observable<Notification[]> {
+    return this.http.get<Notification[]>(`${this.apiUrl}/notifications`);
+  }
+
+  getUnreadNotificationCount(): Observable<{ count: number }> {
+    return this.http.get<{ count: number }>(`${this.apiUrl}/notifications/unread-count`);
+  }
+
+  markNotificationRead(id: number): Observable<Notification> {
+    return this.http.patch<Notification>(`${this.apiUrl}/notifications/${id}/read`, {});
+  }
+
+  markAllNotificationsRead(): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/notifications/read-all`, {});
   }
 }

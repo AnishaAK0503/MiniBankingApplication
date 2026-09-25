@@ -13,10 +13,10 @@
   min-width: 260px;
   max-width: min(380px, calc(100vw - 32px));
   padding: 13px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--border-strong);
   border-radius: 10px;
-  background: #241132;
-  color: #fff;
+  background: var(--surface-elevated);
+  color: var(--text-primary);
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.32);
   pointer-events: auto;
   animation: toast-in 180ms ease-out;
@@ -26,10 +26,10 @@
   border-color: rgba(125, 240, 191, 0.6);
 }
 .toast.error {
-  border-color: rgba(255, 141, 155, 0.7);
+  border-color: rgba(239, 68, 68, 0.7);
 }
 .toast.info {
-  border-color: rgba(0, 240, 255, 0.65);
+  border-color: rgba(56, 189, 248, 0.65);
 }
 
 .toast-mark {
@@ -39,8 +39,8 @@
   height: 22px;
   flex: 0 0 22px;
   border-radius: 50%;
-  background: #00f0ff;
-  color: #170a27;
+  background: var(--primary);
+  color: #fff;
   font-weight: 800;
 }
 

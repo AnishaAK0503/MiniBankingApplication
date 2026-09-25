@@ -5,13 +5,12 @@ import { AccountsComponent } from './features/accounts/accounts.component';
 import { TransactionsComponent } from './features/transactions/transactions.component';
 import { BeneficiariesComponent } from './features/beneficiaries/beneficiaries.component';
 import { LoginComponent } from './features/auth/login/login.component';
-import { RegisterComponent } from './features/auth/register/register.component';
 import { ProfileComponent } from './features/profile/profile.component';
-import { TransferComponent } from './features/transfer/transfer.component';
 import { ApprovalsComponent } from './features/approvals/approvals.component';
-import { UsersComponent } from './features/users/users.component';
 import { AuditLogsComponent } from './features/audit-logs/audit-logs.component';
 import { AccountRequestsComponent } from './features/account-requests/account-requests.component';
+import { UsersComponent } from './features/users/users.component';
+import { NotificationsComponent } from './features/notifications/notifications.component';
 import { roleGuard } from './core/guards/role.guard';
 import { authGuard } from './core/guards/auth.guard';
 
@@ -25,10 +24,6 @@ export const routes: Routes = [
     path: 'login',
     component: LoginComponent,
   },
-  {
-    path: 'register',
-    component: RegisterComponent,
-  },
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
   {
     path: 'profile',
@@ -39,14 +34,14 @@ export const routes: Routes = [
     path: 'customers',
     component: CustomersComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['maker', 'admin'] },
+    data: { roles: ['maker', 'checker', 'admin'] },
   },
   { path: 'accounts', component: AccountsComponent, canActivate: [authGuard] },
   {
     path: 'account-requests',
     component: AccountRequestsComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['maker', 'admin'] },
+    data: { roles: ['maker'] },
   },
   { path: 'transactions', component: TransactionsComponent, canActivate: [authGuard] },
   {
@@ -55,12 +50,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   { path: 'beneficiaries', component: BeneficiariesComponent, canActivate: [authGuard] },
-  {
-    path: 'transfer',
-    component: TransferComponent,
-    canActivate: [authGuard, roleGuard],
-    data: { roles: ['customer'] },
-  },
+  { path: 'notifications', component: NotificationsComponent, canActivate: [authGuard] },
   {
     path: 'approvals',
     component: ApprovalsComponent,

@@ -3,70 +3,63 @@
     <div>
       <p class="eyebrow">CUSTOMER DIRECTORY</p>
       <h1>Customers</h1>
-      <p class="muted">View existing banking customers.</p>
+      <p class="muted">Manage customer records and banking relationships.</p>
     </div>
+    <button class="primary-button" type="button" *ngIf="permissions.isAdmin || permissions.isMaker" (click)="showForm = true">
+      {{ permissions.isMaker ? 'Create request' : 'Add customer' }}
+    </button>
   </div>
-  <div class="content-grid">
-    <div class="panel">
-      <div class="panel-heading">
-        <div>
-          <h2>Customer list</h2>
-          <p class="list-count" *ngIf="customers.length">
-            Showing {{ pageStart }}-{{ pageEnd }} of {{ customers.length }} customers
-          </p>
-        </div>
-        <div class="panel-actions">
-          <button
-            class="secondary-button"
-            type="button"
-            (click)="exportCsv()"
-            [disabled]="loading || !customers.length"
-          >
-            Export CSV</button
-          ><button class="secondary-button" type="button" (click)="load()" [disabled]="loading">
-            {{ loading ? 'Loading...' : 'Refresh' }}
-          </button>
-        </div>
-      </div>
-      <p class="error" *ngIf="error">{{ error }}</p>
-      <p class="muted" *ngIf="loading">Loading customers...</p>
-      <p class="muted" *ngIf="!loading && !customers.length">No customers found.</p>
-      <div class="table-wrap" *ngIf="!loading && customers.length">
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Phone</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let customer of visibleCustomers">
-              <td>{{ customer.name }}</td>
-              <td>{{ customer.email }}</td>
-              <td>{{ customer.phone }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="pagination" *ngIf="!loading && totalPages > 1">
-        <button
-          class="secondary-button"
-          type="button"
-          (click)="goToPage(currentPage - 1)"
-          [disabled]="currentPage === 1"
-        >
-          Previous</button
-        ><span>Page {{ currentPage }} of {{ totalPages }}</span
-        ><button
-          class="secondary-button"
-          type="button"
-          (click)="goToPage(currentPage + 1)"
-          [disabled]="currentPage === totalPages"
-        >
-          Next
-        </button>
-      </div>
+
+  <div class="customer-toolbar">
+    <label class="search-field"><span aria-hidden="true">Search</span><input type="search" [(ngModel)]="searchTerm" (ngModelChange)="currentPage = 1" placeholder="Search name, email, or phone" /></label>
+    <button class="secondary-button" type="button" (click)="load()" [disabled]="loading">{{ loading ? 'Loading...' : 'Refresh' }}</button>
+    <button class="secondary-button" type="button" (click)="exportCsv()" [disabled]="loading || !customers.length">Export CSV</button>
+  </div>
+
+  <section class="panel customer-list-panel">
+    <div class="panel-heading">
+      <div><h2>Customer list</h2><p class="list-count">{{ filteredCustomers.length ? 'Showing ' + pageStart + '-' + pageEnd + ' of ' + filteredCustomers.length + ' customers' : 'No matching customers' }}</p></div>
     </div>
-  </div>
+    <p class="error" *ngIf="error">{{ error }}</p>
+    <p class="muted" *ngIf="loading">Loading customers...</p>
+    <p class="empty-state" *ngIf="!loading && !filteredCustomers.length"><strong>No customers found</strong><span>Try adjusting your search or filters.</span></p>
+    <div class="table-wrap" *ngIf="!loading && filteredCustomers.length">
+      <table>
+        <thead><tr><th>Customer</th><th>Email</th><th>Phone</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let customer of visibleCustomers">
+              <td><strong>{{ customer.name }}</strong></td><td>{{ customer.email }}</td><td>{{ customer.phone }}</td><td><span class="table-action">View</span><button class="danger-button table-delete" *ngIf="permissions.isAdmin" type="button" (click)="deleteTarget = customer">Delete</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination" *ngIf="!loading && totalPages > 1">
+      <button class="secondary-button" type="button" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">Previous</button><span>Page {{ currentPage }} of {{ totalPages }}</span><button class="secondary-button" type="button" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">Next</button>
+    </div>
+  </section>
+
+  <section class="panel request-history" *ngIf="permissions.isMaker && requests.length">
+    <div class="panel-heading"><div><h2>My customer requests</h2><p class="muted">Request status and Checker feedback.</p></div></div>
+    <div class="table-wrap"><table><thead><tr><th>Request</th><th>Customer</th><th>Created</th><th>Status</th><th>Reason</th></tr></thead>
+      <tbody><tr *ngFor="let request of requests"><td>#{{ request.id }}</td><td>{{ request.name }}</td><td>{{ request.createdAt | date:'mediumDate' }}</td><td><span class="status-badge" [class.pending]="request.status === 'PENDING'" [class.approved]="request.status === 'APPROVED'" [class.rejected]="request.status === 'REJECTED'">{{ request.status }}</span></td><td>{{ request.rejectionReason || (request.status === 'PENDING' ? 'Waiting for Checker' : request.status === 'APPROVED' ? 'Customer created' : '-') }}</td></tr></tbody>
+    </table></div>
+  </section>
 </section>
+
+<div class="modal-backdrop" *ngIf="showForm" (click)="showForm = false">
+  <form class="modal-card" (ngSubmit)="createCustomer()" #customerForm="ngForm" (click)="$event.stopPropagation()">
+    <div class="modal-heading"><div><p class="eyebrow">{{ permissions.isMaker ? 'MAKER WORKFLOW' : 'CUSTOMER DIRECTORY' }}</p><h2>{{ permissions.isMaker ? 'Create customer request' : 'Add customer' }}</h2></div><button class="modal-close" type="button" aria-label="Close" (click)="showForm = false">&times;</button></div>
+    <p class="muted">{{ permissions.isMaker ? 'Submit the customer details for Checker approval.' : 'Create a banking customer record. This person does not need application credentials.' }}</p>
+    <div class="form-grid"><label>Name<input name="name" [(ngModel)]="form.name" required /></label><label>Email<input name="email" type="email" [(ngModel)]="form.email" required /></label><label>Phone<input name="phone" [(ngModel)]="form.phone" required /></label></div>
+    <div class="modal-actions"><button class="secondary-button" type="button" (click)="showForm = false">Cancel</button><button class="primary-button" type="submit" [disabled]="customerForm.invalid || saving">{{ saving ? 'Submitting...' : (permissions.isMaker ? 'Submit request' : 'Create customer') }}</button></div>
+  </form>
+</div>
+
+<div class="modal-backdrop" *ngIf="deleteTarget" (click)="deleteTarget = null">
+  <form class="modal-card delete-modal" (ngSubmit)="removeCustomer()" (click)="$event.stopPropagation()">
+    <div class="modal-heading"><div><p class="eyebrow">ADMIN CONTROL</p><h2>Delete customer</h2></div><button class="modal-close" type="button" aria-label="Close" (click)="deleteTarget = null">&times;</button></div>
+    <p class="muted">Delete {{ deleteTarget?.name }}? Provide a reason. Maker and Checker users will be notified.</p>
+    <label>Deletion reason<textarea name="deleteReason" [(ngModel)]="deleteReason" rows="3" required placeholder="Reason for deletion"></textarea></label>
+    <div class="modal-actions"><button class="secondary-button" type="button" (click)="deleteTarget = null">Cancel</button><button class="danger-button" type="submit" [disabled]="!deleteReason.trim() || deleting">{{ deleting ? 'Deleting...' : 'Delete customer' }}</button></div>
+  </form>
+</div>

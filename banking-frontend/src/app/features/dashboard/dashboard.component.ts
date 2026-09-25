@@ -31,7 +31,7 @@ export class DashboardComponent {
   }
 
   get userRole(): string {
-    return this.currentUser?.role?.toUpperCase() ?? 'CUSTOMER';
+    return this.currentUser?.role?.toUpperCase() ?? 'EMPLOYEE';
   }
 
   get initials(): string {
@@ -49,16 +49,7 @@ export class DashboardComponent {
       .subscribe({
         next: (customers) => {
           const user = this.currentUser;
-          const customer =
-            user?.role === 'customer'
-              ? customers.find(
-                  (item) =>
-                    item.email.toLowerCase() === user.email.toLowerCase() ||
-                    item.name.toLowerCase() === user.name.toLowerCase(),
-                )
-              : undefined;
-          this.customerId = customer?.id ?? 0;
-          this.stats.customers = user?.role === 'customer' ? (customer ? 1 : 0) : customers.length;
+          this.stats.customers = customers.length;
           this.changeDetector.detectChanges();
         },
         error: () => (this.error = 'Customer count could not be loaded.'),
@@ -69,10 +60,7 @@ export class DashboardComponent {
       .pipe(retry({ count: 4, delay: 1000 }), timeout({ each: 5000 }))
       .subscribe({
         next: (beneficiaries) => {
-          this.stats.beneficiaries =
-            this.currentUser?.role === 'customer'
-              ? beneficiaries.filter((item) => item.customerId === this.customerId).length
-              : beneficiaries.length;
+          this.stats.beneficiaries = beneficiaries.length;
           this.changeDetector.detectChanges();
         },
         error: () => (this.error = 'Beneficiary count could not be loaded.'),
@@ -83,17 +71,13 @@ export class DashboardComponent {
       .pipe(retry({ count: 4, delay: 1000 }), timeout({ each: 5000 }))
       .subscribe({
         next: (accounts) => {
-          const visibleAccounts =
-            this.currentUser?.role === 'customer'
-              ? accounts.filter((account) => account.customerId === this.customerId)
-              : accounts;
-          this.stats.accounts = visibleAccounts.length;
-          this.stats.balance = visibleAccounts.reduce(
+          this.stats.accounts = accounts.length;
+          this.stats.balance = accounts.reduce(
             (total, account) => total + account.balance,
             0,
           );
           this.changeDetector.detectChanges();
-          this.loadTransactionCount(visibleAccounts);
+          this.loadTransactionCount(accounts);
         },
         error: () => (this.error = 'Account count could not be loaded.'),
       });

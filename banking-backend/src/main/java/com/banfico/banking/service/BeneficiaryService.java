@@ -9,6 +9,7 @@ import com.banfico.banking.repository.BeneficiaryRepository;
 import com.banfico.banking.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class BeneficiaryService {
     @Autowired
     private CustomerRepository customerRepository;
 
-    public BeneficiaryResponse createBeneficiary(BeneficiaryRequest request){
+    public BeneficiaryResponse createBeneficiary(BeneficiaryRequest request, Authentication authentication){
         Customer customer = customerRepository.findById(request.getCustomerId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Customer not found"));
@@ -34,14 +35,15 @@ public class BeneficiaryService {
         return map(saved);
     }
 
-    public List<BeneficiaryResponse> getAllBeneficiaries(){
-        return beneficiaryRepository.findAll()
+    public List<BeneficiaryResponse> getAllBeneficiaries(Authentication authentication){
+        List<Beneficiary> beneficiaries = beneficiaryRepository.findAll();
+        return beneficiaries
                 .stream()
                 .map(this::map)
                 .toList();
     }
 
-    public List<BeneficiaryResponse> getBeneficiariesByCustomer(Long customerId){
+    public List<BeneficiaryResponse> getBeneficiariesByCustomer(Long customerId, Authentication authentication){
         return beneficiaryRepository.findByCustomerId(customerId)
                 .stream()
                 .map(this::map)

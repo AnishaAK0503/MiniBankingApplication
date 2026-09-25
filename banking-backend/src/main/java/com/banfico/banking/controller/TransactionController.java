@@ -6,6 +6,8 @@ import com.banfico.banking.service.TransactionService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
@@ -18,6 +20,7 @@ public class TransactionController {
     private TransactionService transactionService;
 
     @PostMapping("/{accountId}/transactions")
+    @PreAuthorize("hasAnyRole('MAKER', 'ADMIN')")
     public TransactionResponse createTransaction(
             @PathVariable Long accountId,
             @Valid @RequestBody TransactionRequest request){
@@ -27,9 +30,10 @@ public class TransactionController {
     }
 
     @GetMapping("/{accountId}/transactions")
+    @PreAuthorize("hasAnyRole('MAKER', 'CHECKER', 'ADMIN')")
     public List<TransactionResponse> getTransactions(
-            @PathVariable Long accountId){
-        return transactionService.getTransactions(accountId);
+            @PathVariable Long accountId, Authentication authentication){
+        return transactionService.getTransactions(accountId, authentication);
 
     }
 

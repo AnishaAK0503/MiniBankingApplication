@@ -1,37 +1,37 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, inject, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
+import { KeycloakService } from '../../../core/services/keycloak.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, RouterLink],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
-export class LoginComponent {
-  readonly auth = inject(AuthService);
+export class LoginComponent implements OnInit {
+  readonly keycloak = inject(KeycloakService);
   readonly router = inject(Router);
 
-  form = { email: 'anisha@bank.com', password: '123456' };
   error = '';
   loading = false;
 
-  login(): void {
+  ngOnInit(): void {
+    if (this.keycloak.isAuthenticated()) {
+      this.router.navigateByUrl('/dashboard');
+    }
+  }
+
+  loginWithKeycloak(): void {
     this.error = '';
     this.loading = true;
-
-    this.auth.login(this.form.email, this.form.password).subscribe({
-      next: () => {
+    this.keycloak
+      .login()
+      .then(() => this.router.navigateByUrl('/dashboard'))
+      .catch(() => {
+        this.error = 'Keycloak login could not be started.';
         this.loading = false;
-        this.router.navigateByUrl('/dashboard');
-      },
-      error: (err) => {
-        this.error = typeof err?.error === 'string' ? err.error : 'Invalid email or password.';
-        this.loading = false;
-      },
-    });
+      });
   }
 }

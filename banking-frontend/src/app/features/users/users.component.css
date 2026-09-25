@@ -1,3 +1,64 @@
 :host {
   display: block;
 }
+
+.users-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  width: 100%;
+}
+
+.filters-row label {
+  display: flex;
+  flex: 1 1 180px;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-weight: 600;
+}
+
+.filters-row input,
+.filters-row select {
+  width: 100%;
+  background: rgba(91, 53, 94, 0.8);
+  border: 1px solid rgba(169, 138, 197, 0.7);
+  border-radius: 10px;
+  color: #f3ebff;
+  padding: 0.8rem 0.9rem;
+  font-size: 0.96rem;
+}
+
+.role-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 86px;
+  border-radius: 999px;
+  padding: 0.32rem 0.7rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.role-pill.admin {
+  background: rgba(73, 146, 255, 0.18);
+  color: #9cc7ff;
+}
+
+.role-pill.checker {
+  background: rgba(74, 200, 154, 0.15);
+  color: #9ae7c4;
+}
+
+.role-pill.maker {
+  background: rgba(255, 195, 92, 0.17);
+  color: #ffd88c;
+}
