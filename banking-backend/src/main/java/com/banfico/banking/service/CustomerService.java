@@ -33,8 +33,9 @@ public class CustomerService {
         if (customerRepository.existsByEmailIgnoreCase(request.getEmail().trim())) {
             throw new IllegalArgumentException("A customer with this email already exists");
         }
-        Customer customer = new Customer(null, request.getName().trim(), request.getEmail().trim().toLowerCase(),
-                request.getPhone().trim(), null, null, null);
+        Customer customer = new Customer(null, request.getName().trim(),
+                request.getEmail().trim().toLowerCase(), request.getPhone().trim(), null, null,
+                null);
         String keycloakUserId = keycloakProvisioningService.provision(customer);
         customer.setKeycloakUserId(keycloakUserId);
         Customer savedCustomer;
@@ -42,7 +43,8 @@ public class CustomerService {
             savedCustomer = customerRepository.save(customer);
         } catch (RuntimeException ex) {
             keycloakProvisioningService.deleteUser(keycloakUserId);
-            throw new IllegalStateException("Customer was not saved after Keycloak provisioning", ex);
+            throw new IllegalStateException("Customer was not saved after Keycloak provisioning",
+                    ex);
         }
 
         CustomerResponse response = new CustomerResponse();
@@ -54,38 +56,50 @@ public class CustomerService {
         return response;
     }
 
-    public void changePassword(com.banfico.banking.dto.PasswordChangeRequest request, Authentication authentication) {
+    public void changePassword(com.banfico.banking.dto.PasswordChangeRequest request,
+            Authentication authentication) {
         keycloakProvisioningService.changePassword(authentication, request);
     }
 
     public List<CustomerResponse> getAllCustomers(Authentication authentication) {
         if (customerIdentityService.hasRole(authentication, "CUSTOMER")) {
-            return List.of(convertToResponse(customerIdentityService.currentCustomer(authentication)));
+            return List
+                    .of(convertToResponse(customerIdentityService.currentCustomer(authentication)));
         }
-        return customerRepository.findAll().stream()
-                .map(this::convertToResponse)
+        return customerRepository.findAll().stream().map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
 
     public CustomerResponse getCustomerById(Long id, Authentication authentication) {
-        Customer customer = customerRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Customer not found with ID : " + id));
-                customerIdentityService.requireCustomerOwner(customer, authentication);
+        Customer customer = customerRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("Customer not found with ID : " + id));
+        customerIdentityService.requireCustomerOwner(customer, authentication);
         return convertToResponse(customer);
     }
 
     @Transactional
     public void deleteCustomer(Long id, String reason, Authentication authentication) {
-        if (reason == null || reason.isBlank()) throw new IllegalArgumentException("Deletion reason is required");
-        Customer customer = customerRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
-        if (!accountRepository.findByCustomerId(id).isEmpty() || !beneficiaryRepository.findByCustomerId(id).isEmpty()) {
-            throw new IllegalStateException("Customer cannot be deleted while accounts or beneficiaries are linked");
+        if (reason == null || reason.isBlank())
+            throw new IllegalArgumentException("Deletion reason is required");
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+        if (!accountRepository.findByCustomerId(id).isEmpty()
+                || !beneficiaryRepository.findByCustomerId(id).isEmpty()) {
+            throw new IllegalStateException(
+                    "Customer cannot be deleted while accounts or beneficiaries are linked");
         }
         customerRepository.delete(customer);
         String actor = NotificationService.displayName(authentication);
-        notificationService.notifyRole("MAKER", "Customer Deleted", "Customer " + customer.getName() + " was deleted by " + actor + ". Reason: " + reason.trim(), "CUSTOMER_DELETED", "CUSTOMER", id);
-        notificationService.notifyRole("CHECKER", "Customer Deleted", "Customer " + customer.getName() + " was deleted by " + actor + ". Reason: " + reason.trim(), "CUSTOMER_DELETED", "CUSTOMER", id);
+        notificationService
+                .notifyRole(
+                        "MAKER", "Customer Deleted", "Customer " + customer.getName()
+                                + " was deleted by " + actor + ". Reason: " + reason.trim(),
+                        "CUSTOMER_DELETED", "CUSTOMER", id);
+        notificationService
+                .notifyRole(
+                        "CHECKER", "Customer Deleted", "Customer " + customer.getName()
+                                + " was deleted by " + actor + ". Reason: " + reason.trim(),
+                        "CUSTOMER_DELETED", "CUSTOMER", id);
     }
 
     private CustomerResponse convertToResponse(Customer customer) {

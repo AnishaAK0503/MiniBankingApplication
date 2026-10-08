@@ -10,6 +10,8 @@ import { AccountRequest } from '../models/account-request.model';
 import { Notification } from '../models/notification.model';
 import { Transfer, TransferCreate } from '../models/transfer.model';
 
+//the centralized REST client for the backend
+
 @Injectable({ providedIn: 'root' })
 export class BankingApiService {
   private readonly http = inject(HttpClient);
@@ -125,20 +127,8 @@ export class BankingApiService {
     });
   }
 
-  createCustomerRequest(customer: Omit<Customer, 'id'>): Observable<any> {
-    return this.http.post(`${this.apiUrl}/customer-requests`, customer);
-  }
-
-  getCustomerRequests(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/customer-requests`);
-  }
-
   getPendingCustomerRequests(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/customer-requests/pending-approval`);
-  }
-
-  submitCustomerRequest(id: number): Observable<any> {
-    return this.http.put(`${this.apiUrl}/customer-requests/${id}/submit`, {});
   }
 
   approveCustomerRequest(id: number): Observable<any> {

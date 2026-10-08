@@ -17,11 +17,6 @@ export class KeycloakService {
     await this.client.login();
   }
 
-  async register(): Promise<void> {
-    await this.init();
-    await this.client.register();
-  }
-
   async init(): Promise<void> {
     if (this.initialized) return;
     try {

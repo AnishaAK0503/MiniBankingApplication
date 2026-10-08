@@ -32,12 +32,12 @@ public class AccountService {
 
     public AccountResponse createAccount(AccountRequest request) {
         Customer customer = customerRepository.findById(request.getCustomerId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Customer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
         BankAccount account = new BankAccount();
         String accountType = request.getAccountType().trim().toUpperCase();
-        if (!List.of("SAVINGS", "CURRENT", "CHECKING").contains(accountType)) throw new IllegalArgumentException("Account type must be SAVINGS or CURRENT");
+        if (!List.of("SAVINGS", "CURRENT", "CHECKING").contains(accountType))
+            throw new IllegalArgumentException("Account type must be SAVINGS or CURRENT");
         account.setAccountType("CHECKING".equals(accountType) ? "CURRENT" : accountType);
         account.setBalance(request.getBalance());
         account.setStatus("ACTIVE");
@@ -58,40 +58,47 @@ public class AccountService {
 
     public List<AccountResponse> getAllAccounts(Authentication authentication) {
         List<BankAccount> accounts = customerIdentityService.hasRole(authentication, "CUSTOMER")
-            ? accountRepository.findByCustomerId(customerIdentityService.currentCustomer(authentication).getId())
-            : accountRepository.findAll();
-        return accounts
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+                ? accountRepository.findByCustomerId(
+                        customerIdentityService.currentCustomer(authentication).getId())
+                : accountRepository.findAll();
+        return accounts.stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
     public List<AccountResponse> getBeneficiaryAccounts(Authentication authentication) {
         Long ownCustomerId = customerIdentityService.hasRole(authentication, "CUSTOMER")
-                ? customerIdentityService.currentCustomer(authentication).getId() : null;
+                ? customerIdentityService.currentCustomer(authentication).getId()
+                : null;
         return accountRepository.findAll().stream()
-                .filter(account -> ownCustomerId == null || !account.getCustomer().getId().equals(ownCustomerId))
-                .map(this::mapToResponse)
-                .toList();
+                .filter(account -> ownCustomerId == null
+                        || !account.getCustomer().getId().equals(ownCustomerId))
+                .map(this::mapToResponse).toList();
     }
 
     public AccountResponse getAccountById(Long id, Authentication authentication) {
         BankAccount account = accountRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Account not found"));
-                customerIdentityService.requireCustomerOwner(account.getCustomer(), authentication);
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+        customerIdentityService.requireCustomerOwner(account.getCustomer(), authentication);
         return mapToResponse(account);
     }
 
     @Transactional
     public void deleteAccount(Long id, String reason, Authentication authentication) {
-        if (reason == null || reason.isBlank()) throw new IllegalArgumentException("Deletion reason is required");
-        BankAccount account = accountRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Account not found"));
-        if (!transactionRepository.findByAccountId(id).isEmpty()) throw new IllegalStateException("Account cannot be deleted while transactions exist");
+        if (reason == null || reason.isBlank())
+            throw new IllegalArgumentException("Deletion reason is required");
+        BankAccount account = accountRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+        if (!transactionRepository.findByAccountId(id).isEmpty())
+            throw new IllegalStateException("Account cannot be deleted while transactions exist");
         accountRepository.delete(account);
         String actor = NotificationService.displayName(authentication);
-        notificationService.notifyRole("MAKER", "Account Deleted", "Account " + account.getAccountNumber() + " was deleted by " + actor + ". Reason: " + reason.trim(), "ACCOUNT_DELETED", "ACCOUNT", id);
-        notificationService.notifyRole("CHECKER", "Account Deleted", "Account " + account.getAccountNumber() + " was deleted by " + actor + ". Reason: " + reason.trim(), "ACCOUNT_DELETED", "ACCOUNT", id);
+        notificationService.notifyRole(
+                "MAKER", "Account Deleted", "Account " + account.getAccountNumber()
+                        + " was deleted by " + actor + ". Reason: " + reason.trim(),
+                "ACCOUNT_DELETED", "ACCOUNT", id);
+        notificationService.notifyRole(
+                "CHECKER", "Account Deleted", "Account " + account.getAccountNumber()
+                        + " was deleted by " + actor + ". Reason: " + reason.trim(),
+                "ACCOUNT_DELETED", "ACCOUNT", id);
     }
 
     private AccountResponse mapToResponse(BankAccount account) {

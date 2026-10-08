@@ -12,7 +12,6 @@ import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.context.annotation.Bean;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -39,7 +38,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable()) //stateless REST API, so CSRF protection is not needed
 
                 .cors(Customizer.withDefaults())
 

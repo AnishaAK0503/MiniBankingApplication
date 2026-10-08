@@ -26,7 +26,7 @@ public class AuditLogController {
     private AuditLogResponse map(AuditLog item) {
         AuditLogResponse response = new AuditLogResponse();
         response.setId(item.getId());
-        response.setActor(item.getActor());
+        response.setActor("*".equals(item.getActor()) ? "Role notification" : item.getActor());
         response.setAction(item.getAction());
         response.setEntityType(item.getEntityType());
         response.setEntityId(item.getEntityId());

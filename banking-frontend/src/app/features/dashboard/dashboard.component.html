@@ -16,7 +16,7 @@
       <article class="metric-card"><span class="metric-icon blue">C</span><div><small>Total Customers</small><strong>{{ customers.length }}</strong></div></article>
       <article class="metric-card"><span class="metric-icon purple">A</span><div><small>Total Accounts</small><strong>{{ accounts.length }}</strong></div></article>
       <article class="metric-card"><span class="metric-icon green">T</span><div><small>Total Transactions</small><strong>{{ transactions.length }}</strong></div></article>
-      <article class="metric-card"><span class="metric-icon amber">P</span><div><small>Pending Approvals</small><strong>{{ pendingCount }}</strong></div></article>
+      <article class="metric-card"><span class="metric-icon amber">P</span><div><small>Pending Approvals</small><strong>{{ pendingApprovalCount }}</strong></div></article>
     </section>
 
     <section class="metric-grid" *ngIf="permissions.isMaker">
@@ -27,7 +27,7 @@
     </section>
 
     <section class="metric-grid" *ngIf="permissions.isChecker">
-      <article class="metric-card"><span class="metric-icon amber">P</span><div><small>Pending Approval</small><strong>{{ pendingCount }}</strong></div></article>
+      <article class="metric-card"><span class="metric-icon amber">P</span><div><small>Pending Approval</small><strong>{{ pendingApprovalCount }}</strong></div></article>
       <article class="metric-card"><span class="metric-icon green">A</span><div><small>Approved Today</small><strong>{{ approvedToday }}</strong></div></article>
       <article class="metric-card"><span class="metric-icon red">R</span><div><small>Rejected Today</small><strong>{{ rejectedCount }}</strong></div></article>
       <article class="metric-card"><span class="metric-icon blue">T</span><div><small>Total Reviewed</small><strong>{{ reviewedCount }}</strong></div></article>
@@ -49,7 +49,7 @@
       </article>
     </section>
 
-    <section class="chart-grid single-chart" *ngIf="permissions.isMaker">
+    <section class="chart-grid single-chart maker-chart" *ngIf="permissions.isMaker">
       <article class="chart-card"><div class="chart-heading"><div><small>REQUEST MIX</small><h2>Transaction Requests</h2></div><span class="chart-caption">Current records</span></div><div class="bar-chart"><div class="bar-row" *ngFor="let item of requestActivity"><span>{{ item.label }}</span><div class="bar-track"><i [style.width.%]="barWidth(item.value, requestActivity)"></i></div><b>{{ item.value }}</b></div></div></article>
     </section>
 

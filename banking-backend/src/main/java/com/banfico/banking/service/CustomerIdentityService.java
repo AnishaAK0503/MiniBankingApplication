@@ -28,14 +28,16 @@ public class CustomerIdentityService {
         String email = authentication.getName();
         if (authentication instanceof JwtAuthenticationToken jwt) {
             String claimEmail = jwt.getToken().getClaimAsString("email");
-            if (claimEmail != null && !claimEmail.isBlank()) email = claimEmail;
+            if (claimEmail != null && !claimEmail.isBlank())
+                email = claimEmail;
         }
-        return customerRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new ResourceNotFoundException("No customer profile is linked to this login"));
+        return customerRepository.findByEmailIgnoreCase(email).orElseThrow(
+                () -> new ResourceNotFoundException("No customer profile is linked to this login"));
     }
 
     public void requireCustomerOwner(Customer customer, Authentication authentication) {
-        if (!hasRole(authentication, "CUSTOMER")) return;
+        if (!hasRole(authentication, "CUSTOMER"))
+            return;
         Customer current = currentCustomer(authentication);
         if (!current.getId().equals(customer.getId())) {
             throw new AccessDeniedException("You are not authorized to access this customer");

@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { KeycloakService } from '../../../core/services/keycloak.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })

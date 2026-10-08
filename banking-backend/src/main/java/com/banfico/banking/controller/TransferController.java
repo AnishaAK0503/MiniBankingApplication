@@ -3,7 +3,6 @@ package com.banfico.banking.controller;
 import com.banfico.banking.dto.TransferCreateRequest;
 import com.banfico.banking.dto.TransferDecisionRequest;
 import com.banfico.banking.dto.TransferResponse;
-import com.banfico.banking.service.NotificationService;
 import com.banfico.banking.service.TransferService;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;

@@ -1,19 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { WorkspaceUserRoleService, WorkspaceUserRecord, WorkspaceUserRole } from '../../core/services/workspace-user-role.service';
 
-export type UserRole = 'admin' | 'checker' | 'maker';
+export type UserRole = WorkspaceUserRole;
 export type UserStatus = 'Active' | 'Inactive';
 
-interface UserRecord {
-  id: number;
-  name: string;
-  email: string;
-  role: UserRole;
-  status: UserStatus;
-  department: string;
-  lastLogin: string;
-}
+interface UserRecord extends WorkspaceUserRecord {}
 
 @Component({
   selector: 'app-users',
@@ -23,14 +16,8 @@ interface UserRecord {
   styleUrl: './users.component.css',
 })
 export class UsersComponent {
-  readonly users: UserRecord[] = [
-    { id: 1, name: 'Anisha', email: 'anisha@minibank.com', role: 'admin', status: 'Active', department: 'Operations', lastLogin: '2026-09-25 10:14' },
-    { id: 2, name: 'Rohan', email: 'rohan@minibank.com', role: 'maker', status: 'Active', department: 'Branch Ops', lastLogin: '2026-09-25 09:32' },
-    { id: 3, name: 'Meera', email: 'meera@minibank.com', role: 'checker', status: 'Active', department: 'Risk Control', lastLogin: '2026-09-25 08:49' },
-    { id: 4, name: 'Karan', email: 'karan@minibank.com', role: 'maker', status: 'Inactive', department: 'Retail Lending', lastLogin: '2026-09-22 15:07' },
-    { id: 5, name: 'Nisha', email: 'nisha@minibank.com', role: 'checker', status: 'Active', department: 'Compliance', lastLogin: '2026-09-24 14:05' },
-    { id: 6, name: 'Suhail', email: 'suhail@minibank.com', role: 'admin', status: 'Inactive', department: 'Head Office', lastLogin: '2026-09-20 11:48' },
-  ];
+  private readonly workspaceUsers = new WorkspaceUserRoleService();
+  readonly users: UserRecord[] = this.workspaceUsers.getWorkspaceUsers();
 
   roleFilter = 'all';
   statusFilter = 'all';

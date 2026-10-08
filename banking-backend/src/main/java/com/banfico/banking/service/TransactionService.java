@@ -25,49 +25,53 @@ public class TransactionService {
     private BankTransactionRepository transactionRepository;
     @Autowired
     private BankAccountRepository accountRepository;
-        @Autowired
-        private CustomerRepository customerRepository;
-        @Autowired
-        private CustomerIdentityService customerIdentityService;
+    @Autowired
+    private CustomerRepository customerRepository;
+    @Autowired
+    private CustomerIdentityService customerIdentityService;
 
-        @Transactional
-        public TransactionResponse createTransaction(Long accountId,
-                                                 TransactionRequest request,
-                                                 Authentication authentication) {
-                String type = request.getType().trim().toUpperCase();
-                if ("DEPOSIT".equals(type)) type = "CREDIT";
-                if ("WITHDRAWAL".equals(type)) type = "DEBIT";
-                if (!"DEBIT".equals(type) && !"CREDIT".equals(type) && !"TRANSFER".equals(type)) {
-                        throw new IllegalArgumentException("Transaction type must be CREDIT, DEBIT, or TRANSFER");
-                }
+    @Transactional
+    public TransactionResponse createTransaction(Long accountId, TransactionRequest request,
+            Authentication authentication) {
+        String type = request.getType().trim().toUpperCase();
+        if ("DEPOSIT".equals(type))
+            type = "CREDIT";
+        if ("WITHDRAWAL".equals(type))
+            type = "DEBIT";
+        if (!"DEBIT".equals(type) && !"CREDIT".equals(type) && !"TRANSFER".equals(type)) {
+            throw new IllegalArgumentException(
+                    "Transaction type must be CREDIT, DEBIT, or TRANSFER");
+        }
         BankAccount account = accountRepository.findById(accountId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Account not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
         customerIdentityService.requireCustomerOwner(account.getCustomer(), authentication);
 
         if ("DEBIT".equals(type) || "TRANSFER".equals(type)) {
             if (account.getBalance() < request.getAmount()) {
-                throw new InsufficientBalanceException(
-                        "Insufficient Balance");
+                throw new InsufficientBalanceException("Insufficient Balance");
             }
-            account.setBalance(
-                    account.getBalance() - request.getAmount());
-                        if ("TRANSFER".equals(type)) {
-                                if (request.getCounterpartyAccount() == null || request.getCounterpartyAccount().isBlank()) {
-                                        throw new IllegalArgumentException("Counterparty account is required for transfers");
-                                }
-                                BankAccount destination = accountRepository.findByAccountNumber(request.getCounterpartyAccount())
-                                                .orElseThrow(() -> new ResourceNotFoundException("Counterparty account not found"));
-                                if (destination.getId().equals(account.getId())) {
-                                        throw new IllegalArgumentException("Source and destination accounts cannot be the same");
-                                }
-                                destination.setBalance((destination.getBalance() == null ? 0D : destination.getBalance()) + request.getAmount());
-                                accountRepository.save(destination);
-                        }
-        }
-        else {
-            account.setBalance(
-                    account.getBalance() + request.getAmount());
+            account.setBalance(account.getBalance() - request.getAmount());
+            if ("TRANSFER".equals(type)) {
+                if (request.getCounterpartyAccount() == null
+                        || request.getCounterpartyAccount().isBlank()) {
+                    throw new IllegalArgumentException(
+                            "Counterparty account is required for transfers");
+                }
+                BankAccount destination = accountRepository
+                        .findByAccountNumber(request.getCounterpartyAccount())
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                "Counterparty account not found"));
+                if (destination.getId().equals(account.getId())) {
+                    throw new IllegalArgumentException(
+                            "Source and destination accounts cannot be the same");
+                }
+                destination.setBalance(
+                        (destination.getBalance() == null ? 0D : destination.getBalance())
+                                + request.getAmount());
+                accountRepository.save(destination);
+            }
+        } else {
+            account.setBalance(account.getBalance() + request.getAmount());
 
         }
         accountRepository.save(account);
@@ -82,25 +86,22 @@ public class TransactionService {
         transaction.setAccount(account);
         transaction.setBalanceAfter(account.getBalance());
 
-        BankTransaction saved =
-                transactionRepository.save(transaction);
+        BankTransaction saved = transactionRepository.save(transaction);
         return map(saved);
 
     }
 
-        public List<TransactionResponse> getTransactions(Long accountId, Authentication authentication){
-                BankAccount account = accountRepository.findById(accountId)
-                                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
-                customerIdentityService.requireCustomerOwner(account.getCustomer(), authentication);
-        return transactionRepository.findByAccountId(accountId)
-                .stream()
-                .map(this::map)
+    public List<TransactionResponse> getTransactions(Long accountId,
+            Authentication authentication) {
+        BankAccount account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+        customerIdentityService.requireCustomerOwner(account.getCustomer(), authentication);
+        return transactionRepository.findByAccountId(accountId).stream().map(this::map)
                 .collect(Collectors.toList());
     }
 
-    private TransactionResponse map(BankTransaction transaction){
-        TransactionResponse response =
-                new TransactionResponse();
+    private TransactionResponse map(BankTransaction transaction) {
+        TransactionResponse response = new TransactionResponse();
 
         response.setId(transaction.getId());
         response.setAmount(transaction.getAmount());
@@ -109,8 +110,7 @@ public class TransactionService {
         response.setReferenceId(transaction.getReferenceId());
         response.setDescription(transaction.getDescription());
         response.setCreatedAt(transaction.getCreatedAt());
-        response.setAccountId(
-                transaction.getAccount().getId());
+        response.setAccountId(transaction.getAccount().getId());
         response.setBalanceAfter(transaction.getBalanceAfter());
         return response;
     }

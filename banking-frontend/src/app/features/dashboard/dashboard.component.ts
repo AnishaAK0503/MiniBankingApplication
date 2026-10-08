@@ -8,6 +8,7 @@ import { RolePermissionsService } from '../../core/services/role-permissions.ser
 import { Account } from '../../core/models/account.model';
 import { Transaction } from '../../core/models/transaction.model';
 import { AccountRequest } from '../../core/models/account-request.model';
+import { WorkspaceUserRoleService } from '../../core/services/workspace-user-role.service';
 
 interface BarItem { label: string; value: number; }
 interface StatusItem { label: string; value: number; color: string; }
@@ -22,6 +23,7 @@ interface StatusItem { label: string; value: number; color: string; }
 export class DashboardComponent {
   private readonly api = inject(BankingApiService);
   private readonly changeDetector = inject(ChangeDetectorRef);
+  private readonly workspaceUsers = new WorkspaceUserRoleService();
   readonly auth = inject(AuthService);
   readonly permissions = inject(RolePermissionsService);
 
@@ -52,6 +54,12 @@ export class DashboardComponent {
     return [...this.accountRequests, ...this.transactionRequests, ...this.consents, ...this.transfers]
       .filter((item) => ['PENDING', 'PENDING_APPROVAL'].includes(item.status)).length;
   }
+  get pendingApprovalCount(): number {
+    return this.approvalRequests.filter((item) => item.status === 'PENDING_APPROVAL').length;
+  }
+  private get approvalRequests(): any[] {
+    return [...this.accountRequests, ...this.transactionRequests, ...this.consents, ...this.transfers];
+  }
   get createdToday(): number { return this.createdTodayCount(this.transactionRequests); }
   get rejectedCount(): number {
     return [...this.accountRequests, ...this.transactionRequests, ...this.consents, ...this.transfers]
@@ -66,22 +74,39 @@ export class DashboardComponent {
   }
 
   get systemActivity(): BarItem[] {
+    const summary = this.workspaceUsers.getRoleSummary();
     return [
-      { label: 'Customers', value: this.customers.length },
-      { label: 'Makers', value: this.uniqueActors(this.accountRequests) },
-      { label: 'Checkers', value: this.uniqueReviewers([...this.accountRequests, ...this.transactionRequests, ...this.consents]) },
-      { label: 'Admins', value: this.permissions.isAdmin ? 1 : 0 },
+      { label: 'Customers', value: summary.customer },
+      { label: 'Makers', value: summary.maker },
+      { label: 'Checkers', value: summary.checker },
+      { label: 'Admins', value: summary.admin },
     ];
   }
   get transactionStatus(): StatusItem[] {
     return this.statusItems([...this.transactionRequests, ...this.transfers, ...this.transactions.map((item) => ({ status: item.type === 'DEBIT' || item.type === 'CREDIT' ? 'COMPLETED' : item.type }))]);
   }
-  get approvalStatus(): StatusItem[] { return this.statusItems([...this.accountRequests, ...this.transactionRequests, ...this.consents]); }
+  get approvalStatus(): StatusItem[] { return this.statusItems(this.approvalRequests, true); }
   get requestActivity(): BarItem[] {
-    return ['TRANSFER', 'DEPOSIT', 'WITHDRAWAL'].map((type) => ({
-      label: this.readable(type),
-      value: this.transactionRequests.filter((item) => item.type === type).length,
-    }));
+    const transactionType = (item: { type: string }) => item.type.trim().toUpperCase();
+    return [
+      {
+        label: 'Transfer',
+        value: this.transfers.length +
+          this.transactionRequests.filter((item) => transactionType(item) === 'TRANSFER').length,
+      },
+      {
+        label: 'Deposit',
+        value: this.transactionRequests.filter((item) =>
+          ['CREDIT', 'DEPOSIT'].includes(transactionType(item)),
+        ).length,
+      },
+      {
+        label: 'Withdrawal',
+        value: this.transactionRequests.filter((item) =>
+          ['DEBIT', 'WITHDRAWAL'].includes(transactionType(item)),
+        ).length,
+      },
+    ];
   }
   get balancePoints(): string {
     if (!this.transactions.length) return '0,72 100,72';
@@ -142,9 +167,17 @@ export class DashboardComponent {
   statusTotal(items: StatusItem[]): number { return items.reduce((sum, item) => sum + item.value, 0); }
   readable(value: string): string { return value.replaceAll('_', ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase()); }
 
-  private statusItems(items: any[]): StatusItem[] {
+  private statusItems(items: any[], approvalOnly = false): StatusItem[] {
     return [
-      { label: 'Pending', value: items.filter((item) => ['PENDING', 'PENDING_APPROVAL'].includes(item.status)).length, color: '#f59e0b' },
+      {
+        label: 'Pending',
+        value: items.filter((item) =>
+          approvalOnly
+            ? item.status === 'PENDING_APPROVAL'
+            : ['PENDING', 'PENDING_APPROVAL'].includes(item.status),
+        ).length,
+        color: '#f59e0b',
+      },
       { label: 'Approved', value: items.filter((item) => ['APPROVED', 'COMPLETED'].includes(item.status)).length, color: '#22c55e' },
       { label: 'Rejected', value: items.filter((item) => item.status === 'REJECTED').length, color: '#ef4444' },
     ];

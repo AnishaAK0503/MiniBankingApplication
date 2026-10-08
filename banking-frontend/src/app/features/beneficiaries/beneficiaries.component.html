@@ -70,7 +70,17 @@
     <div class="form-grid">
       <label>Customer<select name="customerId" [(ngModel)]="form.customerId" required (ngModelChange)="onCustomerSelectionChange()"><option [ngValue]="0" disabled>Select customer</option><option *ngFor="let customer of customers" [ngValue]="customer.id">{{ customer.name }}</option><option *ngIf="!customers.length" [ngValue]="0" disabled>No customers available</option></select></label>
       <label>Beneficiary type<select name="beneficiaryMode" [(ngModel)]="beneficiaryMode" (ngModelChange)="form.internalAccountId = 0"><option value="internal">Existing Mini Banking account</option><option value="external">External beneficiary</option></select></label>
-      <label *ngIf="beneficiaryMode === 'internal'">Select existing account<app-account-select name="internalAccountId" [accounts]="availableInternalAccounts" [selectedId]="form.internalAccountId" [showBalance]="false" placeholderText="Select account" (selectedIdChange)="form.internalAccountId = $event; onInternalAccountChange()"></app-account-select></label>
+      <label *ngIf="beneficiaryMode === 'internal'" class="field-with-account-select">
+        <span>Select existing account</span>
+        <app-account-select
+          name="internalAccountId"
+          [accounts]="availableInternalAccounts"
+          [selectedId]="form.internalAccountId"
+          [showBalance]="false"
+          placeholderText="Select account"
+          (selectedIdChange)="form.internalAccountId = $event; onInternalAccountChange()"
+        ></app-account-select>
+      </label>
       <ng-container *ngIf="beneficiaryMode === 'external'">
         <label>Name<input name="name" [(ngModel)]="form.name" required placeholder="Beneficiary name" /></label>
         <label>Account number<input name="accountNumber" [(ngModel)]="form.accountNumber" required pattern="[0-9]{6,18}" /></label>

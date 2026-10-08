@@ -5,8 +5,8 @@
       <h1>Customers</h1>
       <p class="muted">Manage customer records and banking relationships.</p>
     </div>
-    <button class="primary-button" type="button" *ngIf="permissions.isAdmin || permissions.isMaker" (click)="showForm = true">
-      {{ permissions.isMaker ? 'Create request' : 'Add customer' }}
+    <button class="primary-button" type="button" *ngIf="permissions.isAdmin" (click)="showForm = true">
+      Add customer
     </button>
   </div>
 
@@ -50,20 +50,14 @@
     </div>
   </section>
 
-  <section class="panel request-history" *ngIf="permissions.isMaker && requests.length">
-    <div class="panel-heading"><div><h2>My customer requests</h2><p class="muted">Request status and Checker feedback.</p></div></div>
-    <div class="table-wrap"><table><thead><tr><th>Request</th><th>Customer</th><th>Created</th><th>Status</th><th>Reason</th></tr></thead>
-      <tbody><tr *ngFor="let request of requests"><td>#{{ request.id }}</td><td>{{ request.name }}</td><td>{{ request.createdAt | date:'mediumDate' }}</td><td><span class="status-badge" [class.pending]="request.status === 'PENDING'" [class.approved]="request.status === 'APPROVED'" [class.rejected]="request.status === 'REJECTED'">{{ request.status }}</span></td><td>{{ request.rejectionReason || (request.status === 'PENDING' ? 'Waiting for Checker' : request.status === 'APPROVED' ? 'Customer created' : '-') }}</td></tr></tbody>
-    </table></div>
-  </section>
 </section>
 
-<div class="modal-backdrop" *ngIf="showForm" (click)="showForm = false">
+<div class="modal-backdrop" *ngIf="showForm && permissions.isAdmin" (click)="showForm = false">
   <form class="modal-card" (ngSubmit)="createCustomer()" #customerForm="ngForm" (click)="$event.stopPropagation()">
-    <div class="modal-heading"><div><p class="eyebrow">{{ permissions.isMaker ? 'MAKER WORKFLOW' : 'CUSTOMER DIRECTORY' }}</p><h2>{{ permissions.isMaker ? 'Create customer request' : 'Add customer' }}</h2></div><button class="modal-close" type="button" aria-label="Close" (click)="showForm = false">&times;</button></div>
-    <p class="muted">{{ permissions.isMaker ? 'Submit the customer details for Checker approval.' : 'Create a banking customer and provision their secure Keycloak login.' }}</p>
+    <div class="modal-heading"><div><p class="eyebrow">CUSTOMER DIRECTORY</p><h2>Add customer</h2></div><button class="modal-close" type="button" aria-label="Close" (click)="showForm = false">&times;</button></div>
+    <p class="muted">Create a banking customer and provision their secure Keycloak login.</p>
     <div class="form-grid"><label>Name<input name="name" [(ngModel)]="form.name" required /></label><label>Email<input name="email" type="email" [(ngModel)]="form.email" required /></label><label>Phone<input name="phone" [(ngModel)]="form.phone" required /></label></div>
-    <div class="modal-actions"><button class="secondary-button" type="button" (click)="showForm = false">Cancel</button><button class="primary-button" type="submit" [disabled]="customerForm.invalid || saving">{{ saving ? 'Submitting...' : (permissions.isMaker ? 'Submit request' : 'Create customer') }}</button></div>
+    <div class="modal-actions"><button class="secondary-button" type="button" (click)="showForm = false">Cancel</button><button class="primary-button" type="submit" [disabled]="customerForm.invalid || saving">{{ saving ? 'Creating...' : 'Create customer' }}</button></div>
   </form>
 </div>
 

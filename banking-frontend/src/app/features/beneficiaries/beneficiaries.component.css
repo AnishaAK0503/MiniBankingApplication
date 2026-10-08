@@ -14,5 +14,17 @@
 .form-grid select:focus,
 .form-grid input:focus { border-color: #3b82f6; outline: 2px solid rgba(59, 130, 246, .2); }
 .form-grid option { background: var(--surface-elevated); color: var(--text-primary); }
+.form-grid label app-account-select,
+.form-grid label > app-account-select { display: block; width: 100%; }
+.form-grid label > app-account-select ::ng-deep .account-picker,
+.form-grid label > app-account-select ::ng-deep .account-picker-trigger,
+.form-grid label > app-account-select ::ng-deep .account-picker-option {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
 .modal-close { background: transparent; border: 0; color: var(--text-secondary); font-size: 24px; padding: 0 4px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 22px; }
+.field-with-account-select { width: 100%; }
+.field-with-account-select > span { display: block; margin-bottom: 7px; }
+.field-with-account-select app-account-select { display: block; width: 100%; }

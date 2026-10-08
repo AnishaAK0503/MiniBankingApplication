@@ -37,10 +37,10 @@
       </thead>
       <tbody>
         <tr *ngFor="let log of visibleLogs">
-          <td>{{ log.user }}</td>
+          <td>{{ displayActor(log.actor) }}</td>
           <td>{{ log.action }}</td>
-          <td>{{ log.entity }}</td>
-          <td>{{ log.time }}</td>
+          <td>{{ log.entityType || '-' }}</td>
+          <td>{{ log.createdAt | date: 'medium' }}</td>
         </tr>
       </tbody>
     </table>

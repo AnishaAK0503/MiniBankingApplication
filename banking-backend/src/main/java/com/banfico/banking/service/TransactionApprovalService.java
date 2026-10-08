@@ -29,9 +29,9 @@ public class TransactionApprovalService {
     private final NotificationService notificationService;
 
     public TransactionApprovalService(TransactionApprovalRequestRepository requestRepository,
-                                      BankAccountRepository accountRepository,
-                                      BankTransactionRepository transactionRepository,
-                                      NotificationService notificationService) {
+            BankAccountRepository accountRepository,
+            BankTransactionRepository transactionRepository,
+            NotificationService notificationService) {
         this.requestRepository = requestRepository;
         this.accountRepository = accountRepository;
         this.transactionRepository = transactionRepository;
@@ -39,12 +39,14 @@ public class TransactionApprovalService {
     }
 
     @Transactional
-    public TransactionApprovalResponse create(TransactionApprovalCreate input, Authentication authentication) {
+    public TransactionApprovalResponse create(TransactionApprovalCreate input,
+            Authentication authentication) {
         BankAccount account = accountRepository.findById(input.getAccountId())
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
         String type = normalizeType(input.getType());
         if (!"CREDIT".equals(type) && !"DEBIT".equals(type)) {
-            throw new IllegalArgumentException("Transaction requests support deposits and withdrawals only");
+            throw new IllegalArgumentException(
+                    "Transaction requests support deposits and withdrawals only");
         }
         if (!"ACTIVE".equalsIgnoreCase(account.getStatus())) {
             throw new IllegalStateException("Account is not active");
@@ -60,22 +62,27 @@ public class TransactionApprovalService {
         request.setRequestedByName(NotificationService.displayName(authentication));
         request.setCreatedAt(LocalDateTime.now());
         TransactionApprovalRequest saved = requestRepository.save(request);
-        notificationService.notifyRole("CHECKER", "Transaction Request", "A " + type.toLowerCase() + " request is awaiting approval.", "TRANSACTION_REQUEST_CREATED", "TRANSACTION_REQUEST", saved.getId());
-        notificationService.notifyRole("ADMIN", "Transaction Request", "A " + type.toLowerCase() + " request is awaiting approval.", "TRANSACTION_REQUEST_CREATED", "TRANSACTION_REQUEST", saved.getId());
+        notificationService.notifyRole("CHECKER", "Transaction Request",
+                "A " + type.toLowerCase() + " request is awaiting approval.",
+                "TRANSACTION_REQUEST_CREATED", "TRANSACTION_REQUEST", saved.getId());
+        notificationService.notifyRole("ADMIN", "Transaction Request",
+                "A " + type.toLowerCase() + " request is awaiting approval.",
+                "TRANSACTION_REQUEST_CREATED", "TRANSACTION_REQUEST", saved.getId());
         return map(saved);
     }
 
     public List<TransactionApprovalResponse> list(Authentication authentication) {
-        boolean reviewer = authentication.getAuthorities().stream().anyMatch(authority ->
-                authority.getAuthority().equals("ROLE_CHECKER") || authority.getAuthority().equals("ROLE_ADMIN"));
-        List<TransactionApprovalRequest> requests = reviewer
-                ? requestRepository.findAll()
+        boolean reviewer = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_CHECKER")
+                        || authority.getAuthority().equals("ROLE_ADMIN"));
+        List<TransactionApprovalRequest> requests = reviewer ? requestRepository.findAll()
                 : requestRepository.findByRequestedByOrderByCreatedAtDesc(authentication.getName());
         return requests.stream().map(this::map).toList();
     }
 
     public List<TransactionApprovalResponse> pending() {
-        return requestRepository.findByStatusOrderByCreatedAtDesc(PENDING).stream().map(this::map).toList();
+        return requestRepository.findByStatusOrderByCreatedAtDesc(PENDING).stream().map(this::map)
+                .toList();
     }
 
     @Transactional
@@ -83,7 +90,8 @@ public class TransactionApprovalService {
         TransactionApprovalRequest request = findLocked(id);
         requirePending(request);
         if (request.getRequestedBy().equals(authentication.getName())) {
-            throw new org.springframework.security.access.AccessDeniedException("You cannot approve your own request");
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "You cannot approve your own request");
         }
         BankAccount account = accountRepository.findLockedById(request.getAccount().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
@@ -92,10 +100,11 @@ public class TransactionApprovalService {
         }
         double balance = account.getBalance() == null ? 0D : account.getBalance();
         if ("DEBIT".equals(request.getType()) && balance < request.getAmount()) {
-            throw new InsufficientBalanceException("Insufficient balance. Available balance: " + balance);
+            throw new InsufficientBalanceException(
+                    "Insufficient balance. Available balance: " + balance);
         }
-        double updatedBalance = "DEBIT".equals(request.getType())
-                ? balance - request.getAmount() : balance + request.getAmount();
+        double updatedBalance = "DEBIT".equals(request.getType()) ? balance - request.getAmount()
+                : balance + request.getAmount();
         account.setBalance(updatedBalance);
         accountRepository.save(account);
 
@@ -112,23 +121,31 @@ public class TransactionApprovalService {
         request.setApprovedBy(NotificationService.displayName(authentication));
         request.setReviewedAt(LocalDateTime.now());
         TransactionApprovalRequest saved = requestRepository.save(request);
-        notificationService.notifyUser(saved.getRequestedBy(), "MAKER", "Transaction Request Approved", "Your " + saved.getType().toLowerCase() + " request was approved.", "TRANSACTION_REQUEST_APPROVED", "TRANSACTION_REQUEST", id);
+        notificationService.notifyUser(saved.getRequestedBy(), "MAKER",
+                "Transaction Request Approved",
+                "Your " + saved.getType().toLowerCase() + " request was approved.",
+                "TRANSACTION_REQUEST_APPROVED", "TRANSACTION_REQUEST", id);
         return map(saved);
     }
 
     @Transactional
-    public TransactionApprovalResponse reject(Long id, TransactionApprovalDecision input, Authentication authentication) {
+    public TransactionApprovalResponse reject(Long id, TransactionApprovalDecision input,
+            Authentication authentication) {
         TransactionApprovalRequest request = findLocked(id);
         requirePending(request);
         if (request.getRequestedBy().equals(authentication.getName())) {
-            throw new org.springframework.security.access.AccessDeniedException("You cannot reject your own request");
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "You cannot reject your own request");
         }
         request.setStatus("REJECTED");
         request.setApprovedBy(NotificationService.displayName(authentication));
         request.setRejectionReason(input.getRejectionReason().trim());
         request.setReviewedAt(LocalDateTime.now());
         TransactionApprovalRequest saved = requestRepository.save(request);
-        notificationService.notifyUser(saved.getRequestedBy(), "MAKER", "Transaction Request Rejected", "Your transaction request was rejected. Reason: " + saved.getRejectionReason(), "TRANSACTION_REQUEST_REJECTED", "TRANSACTION_REQUEST", id);
+        notificationService.notifyUser(saved.getRequestedBy(), "MAKER",
+                "Transaction Request Rejected",
+                "Your transaction request was rejected. Reason: " + saved.getRejectionReason(),
+                "TRANSACTION_REQUEST_REJECTED", "TRANSACTION_REQUEST", id);
         return map(saved);
     }
 
@@ -138,13 +155,16 @@ public class TransactionApprovalService {
     }
 
     private void requirePending(TransactionApprovalRequest request) {
-        if (!PENDING.equals(request.getStatus())) throw new IllegalStateException("Only pending transaction requests can be processed");
+        if (!PENDING.equals(request.getStatus()))
+            throw new IllegalStateException("Only pending transaction requests can be processed");
     }
 
     private String normalizeType(String type) {
         String normalized = type.trim().toUpperCase();
-        if ("DEPOSIT".equals(normalized)) return "CREDIT";
-        if ("WITHDRAWAL".equals(normalized)) return "DEBIT";
+        if ("DEPOSIT".equals(normalized))
+            return "CREDIT";
+        if ("WITHDRAWAL".equals(normalized))
+            return "DEBIT";
         return normalized;
     }
 
@@ -164,12 +184,14 @@ public class TransactionApprovalService {
         response.setDescription(request.getDescription());
         response.setReferenceNumber(request.getReferenceNumber());
         response.setStatus(request.getStatus());
-        response.setRequestedBy(request.getRequestedByName() == null ? request.getRequestedBy() : request.getRequestedByName());
+        response.setRequestedBy(request.getRequestedByName() == null ? request.getRequestedBy()
+                : request.getRequestedByName());
         response.setApprovedBy(request.getApprovedBy());
         response.setRejectionReason(request.getRejectionReason());
         response.setCreatedAt(request.getCreatedAt());
         response.setReviewedAt(request.getReviewedAt());
-        response.setTransactionId(request.getTransaction() == null ? null : request.getTransaction().getId());
+        response.setTransactionId(
+                request.getTransaction() == null ? null : request.getTransaction().getId());
         return response;
     }
 }

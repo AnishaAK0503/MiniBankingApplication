@@ -5,7 +5,7 @@ import { BankingApiService } from '../../core/services/banking-api.service';
 import { Customer } from '../../core/models/customer.model';
 import { ToastService } from '../../shared/services/toast.service';
 import { CsvExportService } from '../../shared/services/csv-export.service';
-import { retry, switchMap, timeout } from 'rxjs';
+import { retry, timeout } from 'rxjs';
 import { RolePermissionsService } from '../../core/services/role-permissions.service';
 
 @Component({
@@ -22,7 +22,6 @@ export class CustomersComponent {
   private readonly csv = inject(CsvExportService);
   readonly permissions = inject(RolePermissionsService);
   customers: Customer[] = [];
-  requests: any[] = [];
   loading = true;
   error = '';
   readonly pageSize = 10;
@@ -70,7 +69,6 @@ export class CustomersComponent {
       .subscribe({
         next: (data) => {
           this.customers = data;
-          if (this.permissions.isMaker) this.api.getCustomerRequests().subscribe({ next: (requests) => this.requests = requests });
           this.currentPage = 1;
           this.loading = false;
           this.toast.show('Customer list loaded.');
@@ -92,30 +90,18 @@ export class CustomersComponent {
   createCustomer(): void {
     this.saving = true;
     this.error = '';
-    if (this.permissions.isMaker) {
-      this.api.createCustomerRequest(this.form).pipe(
-        switchMap((request) => this.api.submitCustomerRequest(request.id)),
-      ).subscribe({
-        next: (request) => this.finishCreate(request),
-        error: (err) => this.failCreate(err),
-      });
-      return;
-    }
     this.api.createCustomer(this.form).subscribe({
       next: (customer) => this.finishCreate(customer),
       error: (err) => this.failCreate(err),
     });
   }
 
-  private finishCreate(customer: any): void {
-    if (this.permissions.isAdmin) this.customers = [customer, ...this.customers];
-    else this.requests = [customer, ...this.requests];
+  private finishCreate(customer: Customer): void {
+    this.customers = [customer, ...this.customers];
     this.form = { name: '', email: '', phone: '' };
     this.showForm = false;
     this.saving = false;
-    this.toast.show(this.permissions.isMaker
-      ? 'Customer request submitted for checker approval.'
-      : 'Customer created successfully. Keycloak account and CUSTOMER role configured; password change is required on first login.');
+    this.toast.show('Customer created successfully. Keycloak account and CUSTOMER role configured; password change is required on first login.');
     this.changeDetector.detectChanges();
   }
 
