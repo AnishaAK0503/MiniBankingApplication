@@ -48,7 +48,7 @@ export class AccountsComponent {
   deleteReason = '';
   deleting = false;
 
-  form = { accountNumber: '', accountType: '', balance: 0, customerId: 0 };
+  form = { accountType: '', balance: 0, customerId: 0 };
   get selectedHolderName(): string {
     return this.customers.find((customer) => customer.id === this.form.customerId)?.name ?? '';
   }
@@ -222,7 +222,7 @@ export class AccountsComponent {
           this.currentPage = Math.ceil(this.accounts.length / this.pageSize);
           this.loading = false;
           this.success = 'Account created successfully.';
-          this.form = { accountNumber: '', accountType: '', balance: 0, customerId: 0 };
+          this.form = { accountType: '', balance: 0, customerId: 0 };
           this.showCreateForm = false;
           this.saving = false;
           this.toast.show('Account saved successfully.');

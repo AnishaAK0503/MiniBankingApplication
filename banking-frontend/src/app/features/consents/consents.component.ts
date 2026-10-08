@@ -32,7 +32,7 @@ export class ConsentsComponent {
   form = {
     accountId: 0,
     beneficiaryId: 0,
-    consentType: 'ACCOUNT_ACCESS',
+    consentType: 'PAYMENT' as const,
     amount: 0,
   };
   selectedCustomer = signal<number | null>(null);
@@ -125,11 +125,11 @@ export class ConsentsComponent {
       accountId: this.form.accountId,
       beneficiaryId: this.form.beneficiaryId || undefined,
       consentType: this.form.consentType,
-      amount: this.form.consentType === 'PAYMENT' ? this.form.amount : undefined,
+      amount: this.form.amount,
     }).subscribe({
       next: () => {
         this.toast.show('Consent request submitted for approval.');
-        this.form = { accountId: 0, beneficiaryId: 0, consentType: 'ACCOUNT_ACCESS', amount: 0 };
+        this.form = { accountId: 0, beneficiaryId: 0, consentType: 'PAYMENT', amount: 0 };
         this.load();
       },
       error: (error: any) => this.toast.show(this.errorMessage(error, 'Could not create consent request.'), 'error'),

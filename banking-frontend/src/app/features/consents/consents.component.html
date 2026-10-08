@@ -31,10 +31,8 @@
 
         <label>
           Consent type
-          <select [(ngModel)]="form.consentType" (ngModelChange)="form.amount = 0">
-            <option value="ACCOUNT_ACCESS">Account Access</option>
+          <select [(ngModel)]="form.consentType">
             <option value="PAYMENT">Payment</option>
-            <option value="DATA_SHARE">Data Share</option>
           </select>
         </label>
         <label *ngIf="form.consentType === 'PAYMENT'">

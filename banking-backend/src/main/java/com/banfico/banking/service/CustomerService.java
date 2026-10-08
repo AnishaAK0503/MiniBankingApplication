@@ -26,16 +26,24 @@ public class CustomerService {
     private NotificationService notificationService;
     @Autowired
     private CustomerIdentityService customerIdentityService;
+    @Autowired
+    private KeycloakProvisioningService keycloakProvisioningService;
 
     public CustomerResponse createCustomer(CustomerRequest request) {
         if (customerRepository.existsByEmailIgnoreCase(request.getEmail().trim())) {
             throw new IllegalArgumentException("A customer with this email already exists");
         }
-        Customer customer = new Customer();
-        customer.setName(request.getName());
-        customer.setEmail(request.getEmail());
-        customer.setPhone(request.getPhone());
-        Customer savedCustomer = customerRepository.save(customer);
+        Customer customer = new Customer(null, request.getName().trim(), request.getEmail().trim().toLowerCase(),
+                request.getPhone().trim(), null, null, null);
+        String keycloakUserId = keycloakProvisioningService.provision(customer);
+        customer.setKeycloakUserId(keycloakUserId);
+        Customer savedCustomer;
+        try {
+            savedCustomer = customerRepository.save(customer);
+        } catch (RuntimeException ex) {
+            keycloakProvisioningService.deleteUser(keycloakUserId);
+            throw new IllegalStateException("Customer was not saved after Keycloak provisioning", ex);
+        }
 
         CustomerResponse response = new CustomerResponse();
         response.setId(savedCustomer.getId());
@@ -44,6 +52,10 @@ public class CustomerService {
         response.setPhone(savedCustomer.getPhone());
 
         return response;
+    }
+
+    public void changePassword(com.banfico.banking.dto.PasswordChangeRequest request, Authentication authentication) {
+        keycloakProvisioningService.changePassword(authentication, request);
     }
 
     public List<CustomerResponse> getAllCustomers(Authentication authentication) {

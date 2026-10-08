@@ -8,12 +8,11 @@ Angular frontend for the Mini Banking Operations application.
 - Role-aware navigation for Admin, Maker, and Checker
 - Dashboard, customer, account, transaction, and beneficiary pages
 - Maker-checker customer and account request history
+- Payment-only consent request and approval flow
 - Pending approval workflow for customer and account requests
 - Persistent notification drawer and notifications page
 - Search, filters, pagination, CSV export, loading, empty, and error states
 - Responsive dark banking operations design
-
-Consent Management is deferred and is not included in the current frontend scope.
 
 ## Run
 

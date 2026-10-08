@@ -47,6 +47,9 @@ public class ConsentRequestService {
 
     @Transactional
     public ConsentRequestResponse create(ConsentRequestCreate input, Authentication authentication) {
+        if (!"PAYMENT".equalsIgnoreCase(input.getConsentType())) {
+            throw new IllegalArgumentException("Only payment consent requests are supported");
+        }
         Customer customer = customerIdentityService.currentCustomer(authentication);
         BankAccount account = accountRepository.findById(input.getAccountId())
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
@@ -63,13 +66,11 @@ public class ConsentRequestService {
                 throw new AccessDeniedException("You can only create consent for your own beneficiary");
             }
         }
-        if ("PAYMENT".equalsIgnoreCase(input.getConsentType())) {
-            if (beneficiary == null) {
-                throw new IllegalArgumentException("A beneficiary is required for a payment consent");
-            }
-            if (input.getAmount() == null || input.getAmount() <= 0) {
-                throw new IllegalArgumentException("A payment amount greater than zero is required");
-            }
+        if (beneficiary == null) {
+            throw new IllegalArgumentException("A beneficiary is required for a payment consent");
+        }
+        if (input.getAmount() == null || input.getAmount() <= 0) {
+            throw new IllegalArgumentException("A payment amount greater than zero is required");
         }
 
         ConsentRequest consent = new ConsentRequest();
@@ -92,14 +93,15 @@ public class ConsentRequestService {
 
     public List<ConsentRequestResponse> list(Authentication authentication) {
         if (customerIdentityService.hasRole(authentication, "CUSTOMER")) {
-            return repository.findByCustomerIdOrderByRequestedAtDesc(customerIdentityService.currentCustomer(authentication).getId())
-                    .stream().map(this::map).toList();
+                return repository.findByCustomerIdOrderByRequestedAtDesc(customerIdentityService.currentCustomer(authentication).getId())
+                        .stream().filter(this::isPaymentConsent).map(this::map).toList();
         }
-        return repository.findAll().stream().map(this::map).toList();
+            return repository.findAll().stream().filter(this::isPaymentConsent).map(this::map).toList();
     }
 
     public List<ConsentRequestResponse> pendingApproval() {
-        return repository.findByStatusOrderByRequestedAtDesc("PENDING_APPROVAL").stream().map(this::map).toList();
+            return repository.findByStatusOrderByRequestedAtDesc("PENDING_APPROVAL").stream()
+                    .filter(this::isPaymentConsent).map(this::map).toList();
     }
 
     @Transactional
@@ -189,6 +191,10 @@ public class ConsentRequestService {
     private boolean hasRole(Authentication authentication, String role) {
         return authentication.getAuthorities().stream()
                 .anyMatch(authority -> authority.getAuthority().equals("ROLE_" + role));
+    }
+
+    private boolean isPaymentConsent(ConsentRequest consent) {
+        return "PAYMENT".equalsIgnoreCase(consent.getConsentType());
     }
 
     private ConsentRequestResponse map(ConsentRequest consent) {

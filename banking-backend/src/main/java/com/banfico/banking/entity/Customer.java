@@ -20,6 +20,8 @@ public class Customer {
     private String name;
     private String email;
     private String phone;
+    @Column(name = "keycloak_user_id", unique = true)
+    private String keycloakUserId;
 
     @OneToMany(mappedBy = "customer")
     private List<BankAccount> accounts;

@@ -21,11 +21,15 @@ public class CustomerCreationRequestService {
     private final CustomerCreationRequestRepository requestRepository;
     private final CustomerRepository customerRepository;
     private final NotificationService notificationService;
+    private final CustomerService customerService;
+    private final KeycloakProvisioningService keycloakProvisioningService;
 
-    public CustomerCreationRequestService(CustomerCreationRequestRepository requestRepository, CustomerRepository customerRepository, NotificationService notificationService) {
+    public CustomerCreationRequestService(CustomerCreationRequestRepository requestRepository, CustomerRepository customerRepository, NotificationService notificationService, CustomerService customerService, KeycloakProvisioningService keycloakProvisioningService) {
         this.requestRepository = requestRepository;
         this.customerRepository = customerRepository;
         this.notificationService = notificationService;
+        this.customerService = customerService;
+        this.keycloakProvisioningService = keycloakProvisioningService;
     }
 
     public CustomerCreationRequestResponse create(CustomerRequest input, Authentication authentication) {
@@ -69,13 +73,26 @@ public class CustomerCreationRequestService {
         if (!hasRole(authentication, "CHECKER") && !hasRole(authentication, "ADMIN")) throw new AccessDeniedException("Only a checker can approve customer requests");
         if (request.getRequestedBy().equals(authentication.getName())) throw new AccessDeniedException("You cannot approve your own request");
         if (customerRepository.existsByEmailIgnoreCase(request.getEmail())) throw new IllegalStateException("A customer with this email already exists");
-        Customer customer = new Customer(null, request.getName(), request.getEmail(), request.getPhone(), null, null);
-        Customer saved = customerRepository.save(customer);
-        request.setCustomer(saved);
-        request.setStatus("APPROVED");
-        request.setReviewedBy(authentication.getName());
-        request.setReviewedAt(LocalDateTime.now());
-        CustomerCreationRequest result = requestRepository.save(request);
+        CustomerRequest customerInput = new CustomerRequest();
+        customerInput.setName(request.getName());
+        customerInput.setEmail(request.getEmail());
+        customerInput.setPhone(request.getPhone());
+        customerService.createCustomer(customerInput);
+        Customer saved = customerRepository.findByEmailIgnoreCase(request.getEmail())
+                .orElseThrow(() -> new IllegalStateException("Provisioned customer was not found"));
+        CustomerCreationRequest result;
+        try {
+            request.setCustomer(saved);
+            request.setStatus("APPROVED");
+            request.setReviewedBy(authentication.getName());
+            request.setReviewedAt(LocalDateTime.now());
+            result = requestRepository.save(request);
+        } catch (RuntimeException ex) {
+            // The customer service already compensates if its own save fails.
+            // Compensate here if the surrounding approval transaction fails afterward.
+            keycloakProvisioningService.deleteUser(saved.getKeycloakUserId());
+            throw new IllegalStateException("Customer approval could not be completed", ex);
+        }
         notificationService.notifyUser(request.getRequestedBy(), "MAKER", "Customer Request Approved", "Your customer creation request for " + request.getName() + " has been approved. The customer has been created successfully.", "CUSTOMER_REQUEST_APPROVED", "CUSTOMER_REQUEST", id);
         notificationService.notifyRole("ADMIN", "Customer Request Approved", "Customer creation request submitted by " + request.getRequestedByName() + " has been approved and the customer has been created.", "CUSTOMER_REQUEST_APPROVED", "CUSTOMER_REQUEST", id);
         return map(result);

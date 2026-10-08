@@ -152,17 +152,16 @@ For example, `GET http://localhost:8080/api/customers` reaches the backend throu
 
 ### First Keycloak login and demo role setup
 
-The `mini-banking` realm and public `mini-banking-app` client are imported from [keycloak/realm-export.json](keycloak/realm-export.json) on the first Keycloak startup. The realm contains `CUSTOMER`, `MAKER`, `CHECKER`, and `ADMIN` roles, but no application users are pre-created.
+The `mini-banking` realm and public `mini-banking-app` client are imported from [keycloak/realm-export.json](keycloak/realm-export.json) on the first Keycloak startup. The realm contains `CUSTOMER`, `MAKER`, `CHECKER`, and `ADMIN` roles. Customer users are provisioned automatically in Keycloak when a customer is created or approved in the banking application.
 
 1. Sign in to the Admin Console at `http://localhost:8080/auth/admin/` using `KEYCLOAK_ADMIN_USERNAME` and `KEYCLOAK_ADMIN_PASSWORD` from `.env`.
-2. Select the `mini-banking` realm and create four application users with the following role assignments:
-   - `customer.demo` with role `CUSTOMER`
+2. Select the `mini-banking` realm and create staff demo users with the following role assignments:
    - `maker.demo` with role `MAKER`
    - `checker.demo` with role `CHECKER`
    - `admin.demo` with role `ADMIN`
 3. Set a development password for each user, e.g. `Password@123` for all demo users in the local environment only.
-4. Create a matching customer record in the banking app for `customer.demo` using the same email address used in Keycloak. The backend links Keycloak users to customers by email.
-5. Open `http://localhost:8080/` and sign in through the frontend using a demo user.
+4. Create or approve a customer record in the banking app. The backend creates the matching Keycloak `CUSTOMER` user using the trimmed customer name as the username and the customer email as the Keycloak email.
+5. Open `http://localhost:8080/` and sign in through the frontend. Customer users use the temporary password configured by `KEYCLOAK_TEMPORARY_PASSWORD` and must change it when prompted.
 
 Keycloak keeps its realm data in the `keycloak-data` volume. Realm import is for first initialization; editing the import JSON does not overwrite an already initialized realm.
 
@@ -174,7 +173,7 @@ Use the following demo flow for the final capstone:
   - Login with the Keycloak user that has the `CUSTOMER` role
   - Create or select their customer profile
   - Add a beneficiary
-  - Request a consent for a payment or account-access action
+  - Request a payment consent
   - Revoke an approved consent when needed
 
 - MAKER demo user
@@ -196,7 +195,7 @@ Use the following demo flow for the final capstone:
 
 1. Login as the customer user.
 2. Create a beneficiary.
-3. Create a consent request for `PAYMENT` or `ACCOUNT_ACCESS` from the customer account.
+3. Create a `PAYMENT` consent request from the customer account.
 4. Login as `checker.demo` and approve the consent request.
 5. Retry the protected action (for example, a transfer that requires consent).
 6. Confirm that the action succeeds only after the consent is approved.
@@ -275,6 +274,7 @@ The completed project includes the following end-to-end demo requirements:
 - Login using Keycloak
 - Create customer
 - Create account
+- Account numbers are generated automatically by the backend
 - View account details
 - View transaction history
 - Add beneficiary

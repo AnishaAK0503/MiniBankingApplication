@@ -113,7 +113,9 @@ export class CustomersComponent {
     this.form = { name: '', email: '', phone: '' };
     this.showForm = false;
     this.saving = false;
-    this.toast.show(this.permissions.isMaker ? 'Customer request submitted for checker approval.' : 'Customer profile created.');
+    this.toast.show(this.permissions.isMaker
+      ? 'Customer request submitted for checker approval.'
+      : 'Customer created successfully. Keycloak account and CUSTOMER role configured; password change is required on first login.');
     this.changeDetector.detectChanges();
   }
 

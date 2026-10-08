@@ -31,15 +31,11 @@ public class AccountService {
     private CustomerIdentityService customerIdentityService;
 
     public AccountResponse createAccount(AccountRequest request) {
-        if (accountRepository.existsByAccountNumber(request.getAccountNumber().trim())) {
-            throw new IllegalArgumentException("Account number already exists");
-        }
         Customer customer = customerRepository.findById(request.getCustomerId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Customer not found"));
 
         BankAccount account = new BankAccount();
-        account.setAccountNumber(request.getAccountNumber().trim());
         String accountType = request.getAccountType().trim().toUpperCase();
         if (!List.of("SAVINGS", "CURRENT", "CHECKING").contains(accountType)) throw new IllegalArgumentException("Account type must be SAVINGS or CURRENT");
         account.setAccountType("CHECKING".equals(accountType) ? "CURRENT" : accountType);
@@ -49,6 +45,13 @@ public class AccountService {
         account.setCustomer(customer);
 
         BankAccount savedAccount = accountRepository.save(account);
+        long generatedNumber = savedAccount.getId();
+        String accountNumber;
+        do {
+            accountNumber = String.format("AC%06d", generatedNumber++);
+        } while (accountRepository.existsByAccountNumber(accountNumber));
+        savedAccount.setAccountNumber(accountNumber);
+        savedAccount = accountRepository.save(savedAccount);
 
         return mapToResponse(savedAccount);
     }

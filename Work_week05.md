@@ -27,7 +27,7 @@ Prepare the Mini Banking Application for a gateway-based local deployment, verif
   - MAKER
   - CHECKER
   - ADMIN
-- Confirmed the app continues to use email-based identity matching for customer records.
+- Confirmed the app links customer records by email while newly provisioned customer usernames use the trimmed customer name.
 
 ## Consent Flow Completed
 
@@ -38,7 +38,7 @@ Prepare the Mini Banking Application for a gateway-based local deployment, verif
 - Added payment amount support for payment consents.
 - Added approval-time execution for approved payment consents.
 - Ensured only `PAYMENT` consent requests trigger money movement.
-- Kept `ACCOUNT_ACCESS` and `DATA_SHARE` as authorization-style consents without moving funds.
+- Restricted new consent requests to `PAYMENT`; legacy `ACCOUNT_ACCESS` and `DATA_SHARE` records are excluded from application lists and approval queues.
 - Added inline rejection-reason input on the consent page instead of a browser prompt.
 - Fixed consent error messaging so structured backend errors display as readable text.
 
@@ -58,4 +58,3 @@ Prepare the Mini Banking Application for a gateway-based local deployment, verif
 - Gateway serves the latest frontend bundle.
 - Consent requests are visible in the role-based consent screens.
 - The application stack remains operational behind Nginx.
-

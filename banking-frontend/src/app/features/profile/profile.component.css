@@ -11,3 +11,10 @@ h1 { text-align: center; margin: 0; color: var(--text-primary); font-size: 1.6re
 .actions { margin-top: 22px; display: flex; justify-content: center; }
 .primary-btn { display: inline-block; text-decoration: none; background: var(--primary); color: #fff; padding: 10px 16px; border-radius: var(--radius-sm); font-weight: 700; }
 .primary-btn:hover { background: var(--primary-hover); }
+.password-section { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--border); }
+.password-section h2 { color: var(--text-primary); font-size: 1.1rem; margin: 0 0 14px; }
+.password-section form { display: grid; gap: 12px; }
+.password-section label { display: grid; gap: 6px; color: var(--text-secondary); font-size: .9rem; }
+.password-section input { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; background: var(--bg-secondary); color: var(--text-primary); }
+.password-section .primary-btn { border: 0; cursor: pointer; justify-self: start; }
+.success { color: #4ade80; }

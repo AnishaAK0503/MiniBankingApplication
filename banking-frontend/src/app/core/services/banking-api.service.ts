@@ -23,6 +23,10 @@ export class BankingApiService {
     return this.http.post<Customer>(`${this.apiUrl}/customers`, customer);
   }
 
+  changePassword(request: { currentPassword: string; newPassword: string; confirmPassword: string }): Observable<void> {
+    return this.http.put<void>(`${this.apiUrl}/customers/profile/password`, request);
+  }
+
   getAccounts(): Observable<Account[]> {
     return this.http.get<Account[]>(`${this.apiUrl}/accounts`);
   }
@@ -38,7 +42,7 @@ export class BankingApiService {
   getAccount(id: number): Observable<Account> {
     return this.http.get<Account>(`${this.apiUrl}/accounts/${id}`);
   }
-  createAccount(account: Omit<Account, 'id' | 'customerName'>): Observable<Account> {
+  createAccount(account: Pick<Account, 'accountType' | 'balance' | 'customerId'>): Observable<Account> {
     return this.http.post<Account>(`${this.apiUrl}/accounts`, account);
   }
 
@@ -153,7 +157,7 @@ export class BankingApiService {
     return this.http.get<any[]>(`${this.apiUrl}/consents/pending-approval`);
   }
 
-  createConsent(request: { accountId: number; beneficiaryId?: number; consentType: string; amount?: number }): Observable<any> {
+  createConsent(request: { accountId: number; beneficiaryId?: number; consentType: 'PAYMENT'; amount: number }): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/consents`, request);
   }
 

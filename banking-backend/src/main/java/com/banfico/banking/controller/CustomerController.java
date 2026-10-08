@@ -4,6 +4,7 @@ import com.banfico.banking.dto.CustomerRequest;
 import com.banfico.banking.dto.CustomerResponse;
 import com.banfico.banking.service.CustomerService;
 import jakarta.validation.Valid;
+import com.banfico.banking.dto.PasswordChangeRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,6 +23,12 @@ public class CustomerController {
     public CustomerResponse createCustomer(
             @Valid @RequestBody CustomerRequest request) {
         return customerService.createCustomer(request);
+    }
+
+    @PutMapping("/profile/password")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public void changePassword(@Valid @RequestBody PasswordChangeRequest request, Authentication authentication) {
+        customerService.changePassword(request, authentication);
     }
 
     @GetMapping

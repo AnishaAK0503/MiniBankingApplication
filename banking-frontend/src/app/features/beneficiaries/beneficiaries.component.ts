@@ -10,11 +10,12 @@ import { RolePermissionsService } from '../../core/services/role-permissions.ser
 import { ToastService } from '../../shared/services/toast.service';
 import { retry, timeout } from 'rxjs';
 import { CsvExportService } from '../../shared/services/csv-export.service';
+import { AccountSelectComponent } from '../../shared/components/account-select/account-select.component';
 
 @Component({
   selector: 'app-beneficiaries',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AccountSelectComponent],
   templateUrl: './beneficiaries.component.html',
   styleUrl: './beneficiaries.component.css',
 })

@@ -2,8 +2,11 @@ CREATE TABLE IF NOT EXISTS customers (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255),
     email VARCHAR(255),
-    phone VARCHAR(255)
+    phone VARCHAR(255),
+    keycloak_user_id VARCHAR(255) UNIQUE
 );
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS keycloak_user_id VARCHAR(255);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_customers_keycloak_user_id ON customers(keycloak_user_id) WHERE keycloak_user_id IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS bank_accounts (
     id BIGSERIAL PRIMARY KEY,

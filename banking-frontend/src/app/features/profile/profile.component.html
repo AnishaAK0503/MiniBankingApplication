@@ -23,6 +23,18 @@
     </div>
     <p class="error" *ngIf="profileError">{{ profileError }}</p>
 
+    <section class="password-section" *ngIf="permissions.isCustomer">
+      <h2>Change Password</h2>
+      <form (ngSubmit)="changePassword()" #passwordFormRef="ngForm">
+        <label>Current Password<input type="password" name="currentPassword" [(ngModel)]="passwordForm.currentPassword" required /></label>
+        <label>New Password<input type="password" name="newPassword" [(ngModel)]="passwordForm.newPassword" required /></label>
+        <label>Confirm New Password<input type="password" name="confirmPassword" [(ngModel)]="passwordForm.confirmPassword" required /></label>
+        <p class="success" *ngIf="passwordMessage">{{ passwordMessage }}</p>
+        <p class="error" *ngIf="passwordError">{{ passwordError }}</p>
+        <button class="primary-btn" type="submit" [disabled]="passwordFormRef.invalid || passwordSaving">{{ passwordSaving ? 'Changing...' : 'Change Password' }}</button>
+      </form>
+    </section>
+
     <div class="actions">
       <a routerLink="/dashboard" class="primary-btn">Back to dashboard</a>
     </div>
