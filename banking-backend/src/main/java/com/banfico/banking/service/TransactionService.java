@@ -27,10 +27,13 @@ public class TransactionService {
     private BankAccountRepository accountRepository;
         @Autowired
         private CustomerRepository customerRepository;
+        @Autowired
+        private CustomerIdentityService customerIdentityService;
 
         @Transactional
         public TransactionResponse createTransaction(Long accountId,
-                                                 TransactionRequest request) {
+                                                 TransactionRequest request,
+                                                 Authentication authentication) {
                 String type = request.getType().trim().toUpperCase();
                 if ("DEPOSIT".equals(type)) type = "CREDIT";
                 if ("WITHDRAWAL".equals(type)) type = "DEBIT";
@@ -40,6 +43,7 @@ public class TransactionService {
         BankAccount account = accountRepository.findById(accountId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Account not found"));
+        customerIdentityService.requireCustomerOwner(account.getCustomer(), authentication);
 
         if ("DEBIT".equals(type) || "TRANSFER".equals(type)) {
             if (account.getBalance() < request.getAmount()) {
@@ -54,6 +58,9 @@ public class TransactionService {
                                 }
                                 BankAccount destination = accountRepository.findByAccountNumber(request.getCounterpartyAccount())
                                                 .orElseThrow(() -> new ResourceNotFoundException("Counterparty account not found"));
+                                if (destination.getId().equals(account.getId())) {
+                                        throw new IllegalArgumentException("Source and destination accounts cannot be the same");
+                                }
                                 destination.setBalance((destination.getBalance() == null ? 0D : destination.getBalance()) + request.getAmount());
                                 accountRepository.save(destination);
                         }
@@ -84,6 +91,7 @@ public class TransactionService {
         public List<TransactionResponse> getTransactions(Long accountId, Authentication authentication){
                 BankAccount account = accountRepository.findById(accountId)
                                 .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
+                customerIdentityService.requireCustomerOwner(account.getCustomer(), authentication);
         return transactionRepository.findByAccountId(accountId)
                 .stream()
                 .map(this::map)

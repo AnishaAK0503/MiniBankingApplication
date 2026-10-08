@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { KeycloakService } from './keycloak.service';
 
-export type UserRole = 'maker' | 'checker' | 'admin';
+export type UserRole = 'customer' | 'maker' | 'checker' | 'admin';
 
 export interface AppUser {
   id: number;

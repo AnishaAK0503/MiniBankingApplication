@@ -1,0 +1,99 @@
+<section class="feature-page">
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">OPEN BANKING</p>
+      <h1>Consent Management</h1>
+      <p class="muted">Create and review consent requests used to authorize protected banking actions.</p>
+    </div>
+  </div>
+
+  <div class="content-grid" *ngIf="permissions.isCustomer">
+    <div class="panel">
+      <div class="panel-heading">
+        <h2>Request consent</h2>
+      </div>
+      <div class="form-grid">
+        <label>
+          Account
+          <select [(ngModel)]="form.accountId">
+            <option [ngValue]="0" disabled>Select account</option>
+            <option *ngFor="let account of customerAccounts" [ngValue]="account.id">{{ account.accountNumber }} - {{ account.accountType }}</option>
+          </select>
+        </label>
+
+        <label>
+          Beneficiary (optional)
+          <select [(ngModel)]="form.beneficiaryId">
+            <option [ngValue]="0">None</option>
+            <option *ngFor="let beneficiary of beneficiaries" [ngValue]="beneficiary.id">{{ beneficiary.name }} - {{ beneficiary.accountNumber }}</option>
+          </select>
+        </label>
+
+        <label>
+          Consent type
+          <select [(ngModel)]="form.consentType" (ngModelChange)="form.amount = 0">
+            <option value="ACCOUNT_ACCESS">Account Access</option>
+            <option value="PAYMENT">Payment</option>
+            <option value="DATA_SHARE">Data Share</option>
+          </select>
+        </label>
+        <label *ngIf="form.consentType === 'PAYMENT'">
+          Payment amount
+          <input type="number" min="0.01" step="0.01" [(ngModel)]="form.amount" placeholder="Enter amount to pay" />
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button class="primary-button" type="button" [disabled]="!canSubmit()" (click)="createConsent()">Request consent</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-heading">
+      <h2>Consent requests</h2>
+    </div>
+
+    <p class="muted" *ngIf="loading">Loading consent requests...</p>
+    <p class="muted" *ngIf="!loading && !requests.length">No consent requests found.</p>
+
+    <div class="approval-list" *ngIf="!loading && requests.length">
+      <article class="approval-item" *ngFor="let request of requests">
+        <div class="approval-main">
+          <span class="request-id">{{ request.consentType }}</span>
+          <h2>{{ request.customerName }} · {{ request.accountNumber }}</h2>
+          <div class="approval-details">
+            <span><strong>Requested by</strong> {{ request.requestedBy }}</span>
+            <span *ngIf="request.amount"><strong>Amount</strong> {{ request.amount | currency: 'INR' }}</span>
+            <span><strong>Created</strong> {{ request.requestedAt | date: 'medium' }}</span>
+            <span><strong>Status</strong> {{ request.status }}</span>
+          </div>
+        </div>
+
+        <div class="approval-actions" *ngIf="permissions.isChecker || permissions.isAdmin">
+          <button class="primary-button" type="button" *ngIf="request.status === 'PENDING_APPROVAL'" (click)="approveConsent(request.id)">Approve</button>
+          <button class="danger-button" type="button" *ngIf="request.status === 'PENDING_APPROVAL' && rejectionRequestId !== request.id" (click)="startRejectConsent(request.id)">Reject</button>
+        </div>
+
+        <div class="rejection-form" *ngIf="(permissions.isChecker || permissions.isAdmin) && rejectionRequestId === request.id">
+          <label>
+            Rejection reason
+            <textarea
+              [(ngModel)]="rejectionReason"
+              rows="2"
+              maxlength="500"
+              placeholder="Enter the reason for rejecting this consent"
+              aria-label="Rejection reason"></textarea>
+          </label>
+          <div class="rejection-actions">
+            <button class="primary-button" type="button" [disabled]="!rejectionReason.trim()" (click)="rejectConsent(request.id)">Submit rejection</button>
+            <button class="secondary-button" type="button" (click)="cancelRejectConsent()">Cancel</button>
+          </div>
+        </div>
+
+        <div class="approval-actions" *ngIf="permissions.isCustomer && request.status === 'APPROVED'">
+          <button class="danger-button" type="button" (click)="revokeConsent(request.id)">Revoke</button>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>

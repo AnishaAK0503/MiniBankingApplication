@@ -1,0 +1,25 @@
+.transfer-grid { display: grid; grid-template-columns: minmax(280px, 420px) 1fr; gap: 24px; align-items: start; }
+.transfer-form { display: grid; gap: 16px; }
+.transfer-form label { display: grid; gap: 7px; font-weight: 600; }
+.transfer-form input, .transfer-form select, .transfer-form textarea { width: 100%; box-sizing: border-box; }
+.account-select { min-height: 48px; padding: 0 14px; border-radius: 10px; font-size: 14px; font-weight: 650; }
+.transfer-form select { appearance: auto; background: #0b1a2b; color: var(--text-primary); border-color: rgba(96,165,250,.32); }
+.transfer-form option { background: #0b1a2b; color: #f8fafc; padding: 8px; }
+.selected-account-card { display: flex; align-items: center; gap: 11px; padding: 11px 12px; border: 1px solid rgba(59, 130, 246, .28); border-radius: 10px; background: rgba(30, 64, 175, .12); }
+.account-card-icon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: rgba(59, 130, 246, .2); color: #93c5fd; font-weight: 800; }
+.selected-account-card div:nth-child(2) { display: grid; gap: 3px; min-width: 0; }
+.selected-account-card span { color: var(--text-secondary); font-size: 12px; }
+.account-card-balance { margin-left: auto; white-space: nowrap; color: #bfdbfe; }
+.optional { color: var(--muted); font-weight: 400; font-size: .85rem; }
+.transfer-history { min-width: 0; }
+.transfer-row { display: flex; justify-content: space-between; gap: 20px; padding: 16px 0; border-top: 1px solid var(--border); }
+.transfer-row div { display: grid; gap: 5px; }
+.transfer-row div:last-child { text-align: right; }
+.transfer-row span { color: var(--muted); font-size: .86rem; }
+.dialog-backdrop { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 20px; background: rgba(8, 20, 36, .64); }
+.dialog-card { width: min(460px, 100%); display: grid; gap: 16px; padding: 28px; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 24px 70px rgba(0,0,0,.25); }
+.dialog-card dl { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0; }
+.dialog-card dt { color: var(--muted); }.dialog-card dd { margin: 0; text-align: right; font-weight: 600; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.danger-text { color: var(--danger); }.success-text { color: var(--success); }.reference { font-family: monospace; letter-spacing: .04em; }
+@media (max-width: 800px) { .transfer-grid { grid-template-columns: 1fr; } .transfer-row { align-items: flex-start; } }

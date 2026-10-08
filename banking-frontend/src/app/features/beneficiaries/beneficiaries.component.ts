@@ -34,11 +34,14 @@ export class BeneficiariesComponent {
   showForm = false;
   error = '';
   success = '';
+  formError = '';
   readonly pageSize = 10;
   currentPage = 1;
   selectedCustomerFilter = 0;
+  deleteTarget: Beneficiary | null = null;
 
-  form = { name: '', accountNumber: '', bankName: '', customerId: 0, customerAccountId: 0 };
+  form = { name: '', accountNumber: '', confirmAccountNumber: '', bankName: '', ifsc: '', customerId: 0, customerAccountId: 0, internalAccountId: 0 };
+  beneficiaryMode: 'internal' | 'external' = 'internal';
 
   constructor() {
     afterNextRender(() => {
@@ -51,9 +54,11 @@ export class BeneficiariesComponent {
         },
         error: (err) => (this.error = this.message(err)),
       });
-      this.api.getAccounts().subscribe({
+      this.api.getBeneficiaryAccounts().subscribe({
         next: (data) => {
-          this.accounts = data;
+          this.accounts = [...this.accounts, ...data].filter(
+            (account, index, all) => all.findIndex((item) => item.id === account.id) === index,
+          );
           this.syncCustomerSelection();
         },
       });
@@ -65,12 +70,41 @@ export class BeneficiariesComponent {
   }
 
   customerAccountNumber(customerId: number): string {
-    return this.accounts.find((account) => account.customerId === customerId)?.accountNumber ?? '-';
+    const accountNumber = this.accounts.find((account) => account.customerId === customerId)?.accountNumber;
+    return accountNumber ? this.maskAccount(accountNumber) : '-';
+  }
+
+  onInternalAccountChange(): void {
+    const account = this.accounts.find((item) => item.id === this.form.internalAccountId);
+    if (!account) return;
+    this.form.name = account.customerName;
+    this.form.accountNumber = account.accountNumber;
+    this.form.confirmAccountNumber = account.accountNumber;
+    this.form.bankName = 'Mini Banking';
+    this.form.ifsc = 'MINI0INTERNAL';
+  }
+
+  canSubmitBeneficiary(): boolean {
+    if (!this.form.customerId) return false;
+    if (this.beneficiaryMode === 'internal') return this.form.internalAccountId > 0;
+    return !!this.form.name.trim()
+      && /^[0-9]{6,18}$/.test(this.form.accountNumber)
+      && this.form.accountNumber === this.form.confirmAccountNumber
+      && !!this.form.bankName.trim()
+      && /^[A-Za-z]{4}0[A-Za-z0-9]{6}$/.test(this.form.ifsc);
+  }
+
+  maskAccount(accountNumber: string): string {
+    return `••••${accountNumber.slice(-4)}`;
   }
 
   get customerAccounts(): Account[] {
     if (!this.form.customerId) return [];
     return this.accounts.filter((account) => account.customerId === this.form.customerId);
+  }
+
+  get availableInternalAccounts(): Account[] {
+    return this.accounts.filter((account) => account.customerId !== this.form.customerId);
   }
 
   get displayBeneficiaries(): Beneficiary[] {
@@ -155,10 +189,11 @@ export class BeneficiariesComponent {
   }
 
   exportCsv(): void {
+    const rows = this.displayBeneficiaries;
     this.csv.download(
       'beneficiaries.csv',
       ['Name', 'Account', 'Bank', 'Customer', 'Customer Account'],
-      this.beneficiaries.map((item) => [
+      rows.map((item) => [
         item.name,
         item.accountNumber,
         item.bankName,
@@ -169,14 +204,22 @@ export class BeneficiariesComponent {
   }
 
   createBeneficiary(): void {
+    if (this.beneficiaryMode === 'external' && this.form.accountNumber !== this.form.confirmAccountNumber) {
+      this.formError = 'Account numbers do not match.';
+      return;
+    }
     this.saving = true;
     this.error = '';
+    this.formError = '';
     this.success = '';
     const payload = {
       name: this.form.name,
       accountNumber: this.form.accountNumber,
+      confirmAccountNumber: this.form.confirmAccountNumber,
       bankName: this.form.bankName,
+      ifsc: this.form.ifsc,
       customerId: this.form.customerId,
+      internalAccountId: this.beneficiaryMode === 'internal' ? this.form.internalAccountId : undefined,
     };
     this.api
       .createBeneficiary(payload)
@@ -187,8 +230,10 @@ export class BeneficiariesComponent {
           this.beneficiaries = [...this.beneficiaries, item];
           this.currentPage = Math.ceil(this.beneficiaries.length / this.pageSize);
           this.loading = false;
-          this.form = { name: '', accountNumber: '', bankName: '', customerId: 0, customerAccountId: 0 };
+          this.form = { name: '', accountNumber: '', confirmAccountNumber: '', bankName: '', ifsc: '', customerId: 0, customerAccountId: 0, internalAccountId: 0 };
+          this.beneficiaryMode = 'internal';
           this.showForm = false;
+          this.formError = '';
           this.success = 'Beneficiary added successfully.';
           this.saving = false;
           this.toast.show('Beneficiary saved successfully.');
@@ -204,13 +249,20 @@ export class BeneficiariesComponent {
   }
 
   remove(item: Beneficiary): void {
-    if (!confirm(`Delete ${item.name}?`)) return;
+    this.deleteTarget = item;
+  }
+
+  confirmRemove(): void {
+    if (!this.deleteTarget) return;
+    const item = this.deleteTarget;
     this.api
       .deleteBeneficiary(item.id)
       .pipe(timeout({ each: 10000 }))
       .subscribe({
         next: () => {
           this.beneficiaries = this.beneficiaries.filter((value) => value.id !== item.id);
+          this.allBeneficiaries = this.allBeneficiaries.filter((value) => value.id !== item.id);
+          this.deleteTarget = null;
           this.currentPage = Math.min(this.currentPage, this.totalPages);
           this.success = 'Beneficiary deleted.';
           this.toast.show('Beneficiary deleted successfully.');

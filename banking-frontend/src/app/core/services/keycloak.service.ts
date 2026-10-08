@@ -56,7 +56,7 @@ export class KeycloakService {
   getUserClaims(): { name: string; email: string; role: string } | null {
     if (!this.isAuthenticated()) return null;
     const claims = this.client.tokenParsed ?? {};
-    const role = ['admin', 'maker', 'checker'].find((candidate) => this.hasAnyRole([candidate]));
+    const role = ['customer', 'admin', 'maker', 'checker'].find((candidate) => this.hasAnyRole([candidate]));
     if (!role) return null;
     return {
       name: String(claims['name'] ?? claims['preferred_username'] ?? 'Keycloak user'),

@@ -23,7 +23,9 @@
         Export CSV
       </button>
     </div>
-    <p class="muted" *ngIf="!logs.length">No audit activity recorded yet.</p>
+    <p class="muted" *ngIf="loading">Loading audit activity...</p>
+    <p class="error" *ngIf="error">{{ error }}</p>
+    <p class="muted empty-audit" *ngIf="!loading && !error && !logs.length">No audit activity has been recorded yet.</p>
     <table *ngIf="logs.length">
       <thead>
         <tr>

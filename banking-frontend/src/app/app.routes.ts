@@ -11,6 +11,8 @@ import { AuditLogsComponent } from './features/audit-logs/audit-logs.component';
 import { AccountRequestsComponent } from './features/account-requests/account-requests.component';
 import { UsersComponent } from './features/users/users.component';
 import { NotificationsComponent } from './features/notifications/notifications.component';
+import { TransferComponent } from './features/transfers/transfer.component';
+import { ConsentsComponent } from './features/consents/consents.component';
 import { roleGuard } from './core/guards/role.guard';
 import { authGuard } from './core/guards/auth.guard';
 
@@ -44,12 +46,14 @@ export const routes: Routes = [
     data: { roles: ['maker'] },
   },
   { path: 'transactions', component: TransactionsComponent, canActivate: [authGuard] },
+  { path: 'transfers', component: TransferComponent, canActivate: [authGuard, roleGuard], data: { roles: ['customer', 'maker', 'admin'] } },
   {
     path: 'accounts/:accountId/transactions',
     component: TransactionsComponent,
     canActivate: [authGuard],
   },
   { path: 'beneficiaries', component: BeneficiariesComponent, canActivate: [authGuard] },
+  { path: 'consents', component: ConsentsComponent, canActivate: [authGuard] },
   { path: 'notifications', component: NotificationsComponent, canActivate: [authGuard] },
   {
     path: 'approvals',

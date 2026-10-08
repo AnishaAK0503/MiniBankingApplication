@@ -24,6 +24,8 @@ public class CustomerService {
     private BeneficiaryRepository beneficiaryRepository;
     @Autowired
     private NotificationService notificationService;
+    @Autowired
+    private CustomerIdentityService customerIdentityService;
 
     public CustomerResponse createCustomer(CustomerRequest request) {
         if (customerRepository.existsByEmailIgnoreCase(request.getEmail().trim())) {
@@ -45,6 +47,9 @@ public class CustomerService {
     }
 
     public List<CustomerResponse> getAllCustomers(Authentication authentication) {
+        if (customerIdentityService.hasRole(authentication, "CUSTOMER")) {
+            return List.of(convertToResponse(customerIdentityService.currentCustomer(authentication)));
+        }
         return customerRepository.findAll().stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
@@ -54,6 +59,7 @@ public class CustomerService {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Customer not found with ID : " + id));
+                customerIdentityService.requireCustomerOwner(customer, authentication);
         return convertToResponse(customer);
     }
 

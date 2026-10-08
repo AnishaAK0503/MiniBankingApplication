@@ -5,7 +5,7 @@ import { BankingApiService } from '../../core/services/banking-api.service';
 import { Customer } from '../../core/models/customer.model';
 import { ToastService } from '../../shared/services/toast.service';
 import { CsvExportService } from '../../shared/services/csv-export.service';
-import { retry, timeout } from 'rxjs';
+import { retry, switchMap, timeout } from 'rxjs';
 import { RolePermissionsService } from '../../core/services/role-permissions.service';
 
 @Component({
@@ -30,6 +30,7 @@ export class CustomersComponent {
   saving = false;
   showForm = false;
   deleteTarget: Customer | null = null;
+  selectedCustomer: Customer | null = null;
   deleteReason = '';
   deleting = false;
   searchTerm = '';
@@ -91,24 +92,36 @@ export class CustomersComponent {
   createCustomer(): void {
     this.saving = true;
     this.error = '';
-    const request = this.permissions.isMaker ? this.api.createCustomerRequest(this.form) : this.api.createCustomer(this.form);
-    request.subscribe({
-      next: (customer) => {
-        if (this.permissions.isAdmin) this.customers = [customer, ...this.customers];
-        else this.requests = [customer, ...this.requests];
-        this.form = { name: '', email: '', phone: '' };
-        this.showForm = false;
-        this.saving = false;
-        this.toast.show(this.permissions.isMaker ? 'Customer request submitted for checker approval.' : 'Customer profile created.');
-        this.changeDetector.detectChanges();
-      },
-      error: (err) => {
-        this.error = this.message(err);
-        this.saving = false;
-        this.toast.show(this.error, 'error');
-        this.changeDetector.detectChanges();
-      },
+    if (this.permissions.isMaker) {
+      this.api.createCustomerRequest(this.form).pipe(
+        switchMap((request) => this.api.submitCustomerRequest(request.id)),
+      ).subscribe({
+        next: (request) => this.finishCreate(request),
+        error: (err) => this.failCreate(err),
+      });
+      return;
+    }
+    this.api.createCustomer(this.form).subscribe({
+      next: (customer) => this.finishCreate(customer),
+      error: (err) => this.failCreate(err),
     });
+  }
+
+  private finishCreate(customer: any): void {
+    if (this.permissions.isAdmin) this.customers = [customer, ...this.customers];
+    else this.requests = [customer, ...this.requests];
+    this.form = { name: '', email: '', phone: '' };
+    this.showForm = false;
+    this.saving = false;
+    this.toast.show(this.permissions.isMaker ? 'Customer request submitted for checker approval.' : 'Customer profile created.');
+    this.changeDetector.detectChanges();
+  }
+
+  private failCreate(err: any): void {
+    this.error = this.message(err);
+    this.saving = false;
+    this.toast.show(this.error, 'error');
+    this.changeDetector.detectChanges();
   }
 
   removeCustomer(): void {

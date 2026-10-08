@@ -8,4 +8,5 @@ import java.util.List;
 @Repository
 public interface BeneficiaryRepository extends JpaRepository<Beneficiary, Long> {
     List<Beneficiary> findByCustomerId(Long customerId);
+    boolean existsByCustomerIdAndAccountNumberIgnoreCase(Long customerId, String accountNumber);
 }

@@ -28,10 +28,22 @@
         <thead><tr><th>Customer</th><th>Email</th><th>Phone</th><th>Actions</th></tr></thead>
         <tbody>
           <tr *ngFor="let customer of visibleCustomers">
-              <td><strong>{{ customer.name }}</strong></td><td>{{ customer.email }}</td><td>{{ customer.phone }}</td><td><span class="table-action">View</span><button class="danger-button table-delete" *ngIf="permissions.isAdmin" type="button" (click)="deleteTarget = customer">Delete</button></td>
+              <td><strong>{{ customer.name }}</strong></td><td>{{ customer.email }}</td><td>{{ customer.phone }}</td><td><button class="table-action" type="button" (click)="selectedCustomer = customer">View</button><button class="danger-button table-delete" *ngIf="permissions.isAdmin" type="button" (click)="deleteTarget = customer">Delete</button></td>
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <div class="modal-backdrop" *ngIf="selectedCustomer" (click)="selectedCustomer = null">
+      <section class="modal-card customer-detail" (click)="$event.stopPropagation()">
+        <div class="modal-heading"><div><p class="eyebrow">CUSTOMER PROFILE</p><h2>{{ selectedCustomer?.name }}</h2></div><button class="modal-close" type="button" aria-label="Close" (click)="selectedCustomer = null">&times;</button></div>
+        <div class="detail-grid">
+          <div><span>Email</span><strong>{{ selectedCustomer?.email }}</strong></div>
+          <div><span>Phone</span><strong>{{ selectedCustomer?.phone }}</strong></div>
+          <div><span>Customer ID</span><strong>#{{ selectedCustomer?.id }}</strong></div>
+        </div>
+        <div class="modal-actions"><button class="secondary-button" type="button" (click)="selectedCustomer = null">Close</button></div>
+      </section>
     </div>
     <div class="pagination" *ngIf="!loading && totalPages > 1">
       <button class="secondary-button" type="button" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">Previous</button><span>Page {{ currentPage }} of {{ totalPages }}</span><button class="secondary-button" type="button" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">Next</button>

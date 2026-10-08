@@ -36,9 +36,9 @@ public class AccountRequestController {
 
     @PutMapping("/{id}/approve")
     @PreAuthorize("hasAnyRole('CHECKER', 'ADMIN')")
-    public AccountRequestResponse approve(@PathVariable Long id, @RequestBody AccountRequestDecision input, Authentication authentication) { input.setActorName(com.banfico.banking.service.NotificationService.displayName(authentication)); return service.approve(id, input); }
+    public AccountRequestResponse approve(@PathVariable Long id, @RequestBody AccountRequestDecision input, Authentication authentication) { input.setActorName(com.banfico.banking.service.NotificationService.displayName(authentication)); return service.approve(id, input, authentication); }
 
     @PutMapping("/{id}/reject")
     @PreAuthorize("hasAnyRole('CHECKER', 'ADMIN')")
-    public AccountRequestResponse reject(@PathVariable Long id, @RequestBody AccountRequestDecision input, Authentication authentication) { input.setActorName(com.banfico.banking.service.NotificationService.displayName(authentication)); return service.reject(id, input); }
+    public AccountRequestResponse reject(@PathVariable Long id, @RequestBody AccountRequestDecision input, Authentication authentication) { input.setActorName(com.banfico.banking.service.NotificationService.displayName(authentication)); return service.reject(id, input, authentication); }
 }

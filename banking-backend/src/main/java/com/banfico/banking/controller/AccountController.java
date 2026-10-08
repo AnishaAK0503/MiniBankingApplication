@@ -27,13 +27,19 @@ public class AccountController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('MAKER', 'CHECKER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'MAKER', 'CHECKER', 'ADMIN')")
     public List<AccountResponse> getAllAccounts(Authentication authentication) {
         return accountService.getAllAccounts(authentication);
     }
 
+    @GetMapping("/beneficiary-options")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'MAKER', 'CHECKER', 'ADMIN')")
+    public List<AccountResponse> getBeneficiaryAccounts(Authentication authentication) {
+        return accountService.getBeneficiaryAccounts(authentication);
+    }
+
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('MAKER', 'CHECKER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'MAKER', 'CHECKER', 'ADMIN')")
     public AccountResponse getAccountById(
             @PathVariable Long id, Authentication authentication) {
         return accountService.getAccountById(id, authentication);

@@ -69,9 +69,10 @@ public class AccountRequestService {
     }
 
     @Transactional
-    public AccountRequestResponse approve(Long id, AccountRequestDecision input) {
+    public AccountRequestResponse approve(Long id, AccountRequestDecision input, Authentication authentication) {
         AccountRequest request = find(id);
         if (!"PENDING_APPROVAL".equals(request.getStatus())) throw new IllegalStateException("Only requests pending approval can be approved");
+        if (request.getRequestedBy().equals(authentication.getName())) throw new org.springframework.security.access.AccessDeniedException("You cannot approve your own request");
         BankAccount account = new BankAccount();
         account.setAccountNumber("PENDING-" + System.nanoTime());
         account.setAccountType(request.getAccountType());
@@ -86,15 +87,18 @@ public class AccountRequestService {
         request.setApprovedByChecker(input.getActorName());
         request.setApprovedAt(LocalDateTime.now());
         request.setAccount(saved);
+        notificationService.notifyUser(request.getCustomer().getEmail(), "CUSTOMER", "Account Approved",
+            "Your " + saved.getAccountType() + " account has been created successfully.", "ACCOUNT_APPROVED", "ACCOUNT", saved.getId());
         notificationService.notifyUser(request.getRequestedBy(), "MAKER", "Account Request Approved", "Your account creation request for " + request.getCustomer().getName() + " has been approved. Account " + saved.getAccountNumber() + " has been created.", "ACCOUNT_REQUEST_APPROVED", "ACCOUNT_REQUEST", id);
         notificationService.notifyRole("ADMIN", "Account Request Approved", "Account creation request submitted by " + request.getRequestedByName() + " has been approved and Account " + saved.getAccountNumber() + " has been created.", "ACCOUNT_REQUEST_APPROVED", "ACCOUNT_REQUEST", id);
         return map(requestRepository.save(request));
     }
 
     @Transactional
-    public AccountRequestResponse reject(Long id, AccountRequestDecision input) {
+    public AccountRequestResponse reject(Long id, AccountRequestDecision input, Authentication authentication) {
         AccountRequest request = find(id);
         if (!"PENDING_APPROVAL".equals(request.getStatus())) throw new IllegalStateException("Only requests pending approval can be rejected");
+        if (request.getRequestedBy().equals(authentication.getName())) throw new org.springframework.security.access.AccessDeniedException("You cannot reject your own request");
         if (input.getRejectionReason() == null || input.getRejectionReason().isBlank()) throw new IllegalArgumentException("Rejection reason is required");
         request.setStatus("REJECTED");
         request.setRejectionReason(input.getRejectionReason());

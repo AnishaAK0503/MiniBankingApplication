@@ -195,10 +195,11 @@ export class AccountsComponent {
   }
 
   exportCsv(): void {
+    const rows = this.filteredAccounts;
     this.csv.download(
       'accounts.csv',
       ['Account Number', 'Account Holder', 'Type', 'Balance'],
-      this.accounts.map((account) => [
+      rows.map((account) => [
         account.accountNumber,
         account.customerName || 'Customer',
         this.displayAccountType(account.accountType),

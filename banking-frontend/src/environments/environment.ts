@@ -1,8 +1,8 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://localhost:8080/api',
+  apiUrl: '/api',
   keycloak: {
-    url: 'http://localhost:8081',
+    url: '/auth',
     realm: 'mini-banking',
     clientId: 'mini-banking-app',
   },

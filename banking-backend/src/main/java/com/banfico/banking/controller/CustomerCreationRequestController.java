@@ -30,6 +30,10 @@ public class CustomerCreationRequestController {
     @PreAuthorize("hasAnyRole('CHECKER', 'ADMIN')")
     public List<CustomerCreationRequestResponse> pending() { return service.pending(); }
 
+    @PutMapping("/{id}/submit")
+    @PreAuthorize("hasRole('MAKER')")
+    public CustomerCreationRequestResponse submit(@PathVariable Long id, Authentication authentication) { return service.submitForApproval(id, authentication); }
+
     @PutMapping("/{id}/approve")
     @PreAuthorize("hasAnyRole('CHECKER', 'ADMIN')")
     public CustomerCreationRequestResponse approve(@PathVariable Long id, Authentication authentication) { return service.approve(id, authentication); }

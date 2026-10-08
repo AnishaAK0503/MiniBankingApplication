@@ -9,6 +9,8 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtDecoders;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.cors.CorsConfiguration;
@@ -22,8 +24,15 @@ import java.util.List;
 public class SecurityConfig {
 
         @Bean
-        public JwtDecoder jwtDecoder(@Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuerUri) {
-                return JwtDecoders.fromIssuerLocation(issuerUri);
+        public JwtDecoder jwtDecoder(
+                        @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String issuerUri,
+                        @Value("${banking.security.jwt.jwk-set-uri:}") String jwkSetUri) {
+                if (jwkSetUri == null || jwkSetUri.isBlank()) {
+                        return JwtDecoders.fromIssuerLocation(issuerUri);
+                }
+                NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
+                decoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(issuerUri));
+                return decoder;
         }
 
     @Bean
@@ -58,7 +67,7 @@ public class SecurityConfig {
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
-                configuration.setAllowedOrigins(List.of("http://localhost:4200"));
+                configuration.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:8080"));
                 configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin"));
                 configuration.setExposedHeaders(List.of("Authorization"));

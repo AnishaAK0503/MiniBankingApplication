@@ -44,9 +44,25 @@ a { color: inherit; }
 .panel-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .form-panel { display: grid; gap: 14px; }
 label { display: grid; gap: 7px; color: var(--text-secondary); font-size: 12px; font-weight: 600; }
-input, select, textarea { width: 100%; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); padding: 10px 11px; font-size: 14px; }
+input, select, textarea { width: 100%; border: 1px solid #263b55; border-radius: var(--radius-sm); background: #0d1b2e; color: var(--text-primary); color-scheme: dark; padding: 10px 11px; font-size: 14px; }
+select {
+  min-height: 42px;
+  padding-right: 36px;
+  appearance: none;
+  background-color: #0d1b2e;
+  background-image: linear-gradient(45deg, transparent 50%, #a9b8ca 50%), linear-gradient(135deg, #a9b8ca 50%, transparent 50%);
+  background-position: calc(100% - 17px) 18px, calc(100% - 12px) 18px;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+select:hover { background-color: #162d49; border-color: #3b82f6; }
+select:disabled { cursor: not-allowed; opacity: .65; }
+option { min-height: 42px; padding: 10px 14px; background: #0f1f33; color: #f5f7fa; }
+option:checked { background: #183b63; color: #fff; }
+input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus { -webkit-text-fill-color: var(--text-primary); -webkit-box-shadow: 0 0 0 1000px #0b1a2b inset; transition: background-color 9999s ease-in-out 0s; }
 input::placeholder, textarea::placeholder { color: var(--text-muted); }
-input:focus, select:focus, textarea:focus { outline: 2px solid rgba(59, 130, 246, .28); outline-offset: 1px; border-color: var(--primary); }
+input:focus, select:focus, textarea:focus { outline: 2px solid rgba(37, 99, 235, .32); outline-offset: 1px; border-color: #2563eb; }
 button { border-radius: var(--radius-sm); padding: 9px 13px; font-weight: 650; border: 1px solid transparent; transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s ease; }
 button:disabled { cursor: not-allowed; opacity: .55; }
 .primary-button { background: var(--primary); color: #fff; }
@@ -84,4 +100,8 @@ td:first-child { color: var(--text-primary); }
   .panel-actions { width: 100%; }
   .panel-actions button { flex: 1 1 auto; }
   table { min-width: 720px; }
+}
+
+@media (max-width: 480px) {
+  select, input, textarea { min-height: 44px; }
 }

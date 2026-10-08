@@ -20,20 +20,20 @@ public class BeneficiaryController {
     private BeneficiaryService beneficiaryService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('MAKER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'MAKER', 'ADMIN')")
     public BeneficiaryResponse createBeneficiary(
             @Valid @RequestBody BeneficiaryRequest request, Authentication authentication){
         return beneficiaryService.createBeneficiary(request, authentication);
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('MAKER', 'CHECKER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'MAKER', 'CHECKER', 'ADMIN')")
     public List<BeneficiaryResponse> getAllBeneficiaries(Authentication authentication){
         return beneficiaryService.getAllBeneficiaries(authentication);
     }
 
     @GetMapping("/customer/{customerId}")
-    @PreAuthorize("hasAnyRole('MAKER', 'CHECKER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'MAKER', 'CHECKER', 'ADMIN')")
     public List<BeneficiaryResponse> getCustomerBeneficiaries(
             @PathVariable Long customerId, Authentication authentication){
         return beneficiaryService
@@ -41,10 +41,10 @@ public class BeneficiaryController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('CHECKER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'CHECKER', 'ADMIN')")
     public String deleteBeneficiary(
-            @PathVariable Long id){
-        beneficiaryService.deleteBeneficiary(id);
+            @PathVariable Long id, Authentication authentication){
+        beneficiaryService.deleteBeneficiary(id, authentication);
         return "Beneficiary deleted successfully";
     }
 

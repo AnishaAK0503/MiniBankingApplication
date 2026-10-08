@@ -4,6 +4,8 @@ import com.banfico.banking.dto.NotificationResponse;
 import com.banfico.banking.entity.Notification;
 import com.banfico.banking.exception.ResourceNotFoundException;
 import com.banfico.banking.repository.NotificationRepository;
+import com.banfico.banking.entity.AuditLog;
+import com.banfico.banking.repository.AuditLogRepository;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -16,9 +18,13 @@ import java.util.List;
 @Service
 public class NotificationService {
     private final NotificationRepository repository;
+    private final CustomerIdentityService customerIdentityService;
+    private final AuditLogRepository auditLogRepository;
 
-    public NotificationService(NotificationRepository repository) {
+    public NotificationService(NotificationRepository repository, CustomerIdentityService customerIdentityService, AuditLogRepository auditLogRepository) {
         this.repository = repository;
+        this.customerIdentityService = customerIdentityService;
+        this.auditLogRepository = auditLogRepository;
     }
 
     public void notifyUser(String username, String role, String title, String message, String type, String referenceType, Long referenceId) {
@@ -40,12 +46,12 @@ public class NotificationService {
     }
 
     public List<NotificationResponse> list(Authentication authentication) {
-        String username = authentication.getName();
+        String username = recipient(authentication);
         return repository.findForRecipient(username, role(authentication)).stream().map(this::map).toList();
     }
 
     public long unreadCount(Authentication authentication) {
-        return repository.countUnreadForRecipient(authentication.getName(), role(authentication));
+        return repository.countUnreadForRecipient(recipient(authentication), role(authentication));
     }
 
     @Transactional
@@ -57,12 +63,13 @@ public class NotificationService {
 
     @Transactional
     public void markAllRead(Authentication authentication) {
-        repository.findForRecipient(authentication.getName(), role(authentication)).stream()
+        repository.findForRecipient(recipient(authentication), role(authentication)).stream()
                 .filter(notification -> !notification.isRead())
                 .forEach(notification -> notification.setRead(true));
     }
 
     private Notification save(String recipient, String role, String title, String message, String type, String referenceType, Long referenceId) {
+        auditLogRepository.save(new AuditLog(null, recipient, type, referenceType, referenceId, LocalDateTime.now()));
         Notification notification = new Notification(null, recipient, role, title, message, type, referenceType, referenceId, false, LocalDateTime.now());
         return repository.save(notification);
     }
@@ -70,7 +77,7 @@ public class NotificationService {
     private Notification owned(Long id, Authentication authentication) {
         Notification notification = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
-        if (!notification.getRecipient().equals(authentication.getName()) &&
+        if (!notification.getRecipient().equals(recipient(authentication)) &&
                 !("*".equals(notification.getRecipient()) && notification.getRecipientRole().equalsIgnoreCase(role(authentication)))) {
             throw new AccessDeniedException("Notification does not belong to the authenticated user");
         }
@@ -81,7 +88,14 @@ public class NotificationService {
         if (authentication.getAuthorities().stream().anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"))) return "ADMIN";
         if (authentication.getAuthorities().stream().anyMatch(authority -> authority.getAuthority().equals("ROLE_CHECKER"))) return "CHECKER";
         if (authentication.getAuthorities().stream().anyMatch(authority -> authority.getAuthority().equals("ROLE_MAKER"))) return "MAKER";
+        if (authentication.getAuthorities().stream().anyMatch(authority -> authority.getAuthority().equals("ROLE_CUSTOMER"))) return "CUSTOMER";
         return "";
+    }
+
+    private String recipient(Authentication authentication) {
+        return customerIdentityService.hasRole(authentication, "CUSTOMER")
+                ? customerIdentityService.currentCustomer(authentication).getEmail()
+                : authentication.getName();
     }
 
     private NotificationResponse map(Notification notification) {

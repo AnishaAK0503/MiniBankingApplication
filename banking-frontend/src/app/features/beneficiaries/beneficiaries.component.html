@@ -5,12 +5,12 @@
       <h1>Beneficiaries</h1>
       <p class="muted">Maintain the people and accounts you can transfer to.</p>
     </div>
-    <button class="primary-button" type="button" *ngIf="permissions.isAdmin || permissions.isMaker" (click)="showForm = true">Add beneficiary</button>
+    <button class="primary-button" type="button" *ngIf="permissions.canAddBeneficiary" (click)="showForm = true">Add beneficiary</button>
   </div>
   <div class="content-grid">
     <div class="panel">
       <div class="panel-heading"><div><h2>Beneficiary list</h2><p class="list-count" *ngIf="beneficiaries.length">Showing {{ pageStart }}-{{ pageEnd }} of {{ beneficiaries.length }} beneficiaries</p></div><div class="panel-actions"><button class="secondary-button" type="button" (click)="exportCsv()" [disabled]="loading || !beneficiaries.length">Export CSV</button><button class="secondary-button" type="button" (click)="load()" [disabled]="loading">{{ loading ? 'Loading...' : 'Refresh' }}</button></div></div>
-      <label *ngIf="permissions.isAdmin || permissions.isChecker || permissions.isMaker" class="filter-field">Customer<select [ngModel]="selectedCustomerFilter" (ngModelChange)="onCustomerFilterChange($event)"><option [ngValue]="0">All customers</option><option *ngFor="let customer of customers" [ngValue]="customer.id">{{ customer.name }}</option></select></label>
+      <label *ngIf="permissions.isAdmin || permissions.isChecker || permissions.isMaker" class="filter-field">Customer<select [ngModel]="selectedCustomerFilter" (ngModelChange)="onCustomerFilterChange($event)"><option [ngValue]="0">All customers</option><option *ngFor="let customer of customers" [ngValue]="customer.id">{{ customer.name }}</option><option *ngIf="!customers.length" [ngValue]="0" disabled>No customers available</option></select></label>
       <p class="muted" *ngIf="loading">Loading beneficiaries...</p>
       <p class="muted" *ngIf="!loading && !beneficiaries.length">No beneficiaries found.</p>
       <div class="table-wrap" *ngIf="!loading && beneficiaries.length">
@@ -22,17 +22,17 @@
               <th>Bank</th>
               <th>Customer name</th>
               <th>Customer account</th>
-              <th *ngIf="permissions.canManageBeneficiaries"></th>
+              <th *ngIf="permissions.canDeleteBeneficiary"></th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let beneficiary of visibleBeneficiaries">
               <td>{{ beneficiary.name }}</td>
-              <td>{{ beneficiary.accountNumber }}</td>
+              <td>{{ maskAccount(beneficiary.accountNumber) }}</td>
               <td>{{ beneficiary.bankName }}</td>
               <td>{{ customerName(beneficiary.customerId) }}</td>
               <td>{{ customerAccountNumber(beneficiary.customerId) }}</td>
-              <td *ngIf="permissions.canManageBeneficiaries">
+              <td *ngIf="permissions.canDeleteBeneficiary">
                 <button class="danger-button" type="button" (click)="remove(beneficiary)">
                   Delete
                 </button>
@@ -67,7 +67,30 @@
 <div class="modal-backdrop" *ngIf="showForm" (click)="showForm = false">
   <form class="modal-card" (ngSubmit)="createBeneficiary()" #beneficiaryForm="ngForm" (click)="$event.stopPropagation()">
     <div class="modal-heading"><div><p class="eyebrow">PAYEE DIRECTORY</p><h2>Add beneficiary</h2></div><button class="modal-close" type="button" aria-label="Close" (click)="showForm = false">&times;</button></div>
-    <div class="form-grid"><label>Customer<select name="customerId" [(ngModel)]="form.customerId" required (ngModelChange)="onCustomerSelectionChange()"><option [ngValue]="0" disabled>Select customer</option><option *ngFor="let customer of customers" [ngValue]="customer.id">{{ customer.name }}</option></select></label><label>Customer account<select name="customerAccountId" [(ngModel)]="form.customerAccountId" required><option [ngValue]="0" [disabled]="customerAccounts.length > 0">{{ customerAccounts.length ? 'Select account' : 'No account available' }}</option><option *ngFor="let account of customerAccounts" [ngValue]="account.id">{{ account.accountNumber }} - {{ account.accountType }}</option></select></label><label>Name<input name="name" [(ngModel)]="form.name" required placeholder="Beneficiary name" /></label><label>Beneficiary account number<input name="accountNumber" [(ngModel)]="form.accountNumber" required /></label><label>Bank name<input name="bankName" [(ngModel)]="form.bankName" required /></label></div>
-    <div class="modal-actions"><button class="secondary-button" type="button" (click)="showForm = false">Cancel</button><button class="primary-button" type="submit" [disabled]="beneficiaryForm.invalid || saving">{{ saving ? 'Saving...' : 'Add beneficiary' }}</button></div>
+    <div class="form-grid">
+      <label>Customer<select name="customerId" [(ngModel)]="form.customerId" required (ngModelChange)="onCustomerSelectionChange()"><option [ngValue]="0" disabled>Select customer</option><option *ngFor="let customer of customers" [ngValue]="customer.id">{{ customer.name }}</option><option *ngIf="!customers.length" [ngValue]="0" disabled>No customers available</option></select></label>
+      <label>Beneficiary type<select name="beneficiaryMode" [(ngModel)]="beneficiaryMode" (ngModelChange)="form.internalAccountId = 0"><option value="internal">Existing Mini Banking account</option><option value="external">External beneficiary</option></select></label>
+      <label *ngIf="beneficiaryMode === 'internal'">Select existing account<select name="internalAccountId" [(ngModel)]="form.internalAccountId" required (ngModelChange)="onInternalAccountChange()"><option [ngValue]="0" disabled>Select account</option><option *ngFor="let account of availableInternalAccounts" [ngValue]="account.id">{{ account.customerName }} — {{ maskAccount(account.accountNumber) }} — ₹{{ account.balance | number:'1.2-2' }}</option><option *ngIf="!availableInternalAccounts.length" [ngValue]="0" disabled>No other accounts available</option></select></label>
+      <ng-container *ngIf="beneficiaryMode === 'external'">
+        <label>Name<input name="name" [(ngModel)]="form.name" required placeholder="Beneficiary name" /></label>
+        <label>Account number<input name="accountNumber" [(ngModel)]="form.accountNumber" required pattern="[0-9]{6,18}" /></label>
+        <label>Confirm account number<input name="confirmAccountNumber" [(ngModel)]="form.confirmAccountNumber" required pattern="[0-9]{6,18}" /></label>
+        <label>Bank name<input name="bankName" [(ngModel)]="form.bankName" required /></label>
+        <label>IFSC<input name="ifsc" [(ngModel)]="form.ifsc" required pattern="[A-Za-z]{4}0[A-Za-z0-9]{6}" placeholder="ABCD0123456" /></label>
+      </ng-container>
+    </div>
+    <p class="error" *ngIf="formError">{{ formError }}</p>
+    <p class="muted form-hint" *ngIf="!customers.length">Customers could not be loaded. Refresh the page before adding a beneficiary.</p>
+    <p class="muted form-hint" *ngIf="beneficiaryMode === 'internal'">Choose an existing account; its holder and banking details will be filled automatically.</p>
+    <p class="muted form-hint" *ngIf="beneficiaryMode === 'external'">Use an 11-character IFSC such as ABCD0123456. The button remains disabled until every value is valid.</p>
+    <div class="modal-actions"><button class="secondary-button" type="button" (click)="showForm = false">Cancel</button><button class="primary-button" type="submit" [disabled]="!canSubmitBeneficiary() || saving">{{ saving ? 'Saving...' : 'Add beneficiary' }}</button></div>
   </form>
+</div>
+
+<div class="modal-backdrop" *ngIf="deleteTarget" (click)="deleteTarget = null">
+  <section class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-heading"><div><p class="eyebrow">PAYEE DIRECTORY</p><h2>Delete beneficiary?</h2></div><button class="modal-close" type="button" aria-label="Close" (click)="deleteTarget = null">&times;</button></div>
+    <p class="muted">Are you sure you want to remove {{ deleteTarget?.name }} from your beneficiaries?</p>
+    <div class="modal-actions"><button class="secondary-button" type="button" (click)="deleteTarget = null">Cancel</button><button class="danger-button" type="button" (click)="confirmRemove()" [disabled]="saving">Delete</button></div>
+  </section>
 </div>

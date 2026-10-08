@@ -8,5 +8,6 @@ public class BeneficiaryResponse {
     private String name;
     private String accountNumber;
     private String bankName;
+    private String ifsc;
     private Long customerId;
 }

@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { CsvExportService } from '../../shared/services/csv-export.service';
+import { BankingApiService } from '../../core/services/banking-api.service';
 
 @Component({
   selector: 'app-audit-logs',
@@ -11,7 +12,16 @@ import { CsvExportService } from '../../shared/services/csv-export.service';
 })
 export class AuditLogsComponent {
   private readonly csv = inject(CsvExportService);
-  logs = JSON.parse(localStorage.getItem('mini-banking-audit-logs') ?? '[]');
+  logs: any[] = [];
+  private readonly api = inject(BankingApiService);
+  loading = true;
+  error = '';
+  constructor() {
+    this.api.getAuditLogs().subscribe({
+      next: (logs) => { this.logs = logs; this.loading = false; },
+      error: (error) => { this.error = error?.error?.message ?? 'Unable to load audit logs.'; this.loading = false; },
+    });
+  }
   readonly pageSize = 10;
   currentPage = 1;
   get totalPages(): number {
@@ -34,7 +44,7 @@ export class AuditLogsComponent {
     this.csv.download(
       'audit-logs.csv',
       ['User', 'Action', 'Entity', 'Time'],
-      this.logs.map((log: any) => [log.user, log.action, log.entity, log.time]),
+      this.logs.map((log: any) => [log.actor, log.action, log.entityType, log.createdAt]),
     );
   }
 }

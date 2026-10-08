@@ -18,6 +18,7 @@ public class Beneficiary {
     private String name;
     private String accountNumber;
     private String bankName;
+    private String ifsc;
 
     @ManyToOne
     @JoinColumn(name = "customer_id")

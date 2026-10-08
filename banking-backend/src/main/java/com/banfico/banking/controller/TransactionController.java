@@ -20,17 +20,19 @@ public class TransactionController {
     private TransactionService transactionService;
 
     @PostMapping("/{accountId}/transactions")
-    @PreAuthorize("hasAnyRole('MAKER', 'ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public TransactionResponse createTransaction(
             @PathVariable Long accountId,
-            @Valid @RequestBody TransactionRequest request){
+            @Valid @RequestBody TransactionRequest request,
+            Authentication authentication){
         return transactionService.createTransaction(
                 accountId,
-                request);
+                request,
+                authentication);
     }
 
     @GetMapping("/{accountId}/transactions")
-    @PreAuthorize("hasAnyRole('MAKER', 'CHECKER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'MAKER', 'CHECKER', 'ADMIN')")
     public List<TransactionResponse> getTransactions(
             @PathVariable Long accountId, Authentication authentication){
         return transactionService.getTransactions(accountId, authentication);

@@ -32,8 +32,6 @@ public class CustomerCreationRequestService {
         String displayName = NotificationService.displayName(authentication);
         CustomerCreationRequest request = new CustomerCreationRequest(null, input.getName().trim(), input.getEmail().trim(), input.getPhone().trim(), authentication.getName(), displayName, PENDING, null, null, LocalDateTime.now(), null, null);
         CustomerCreationRequest saved = requestRepository.save(request);
-        notificationService.notifyRole("CHECKER", "New Customer Creation Request", "A new customer creation request has been submitted by " + displayName + ". Please review it.", "CUSTOMER_REQUEST_CREATED", "CUSTOMER_REQUEST", saved.getId());
-        notificationService.notifyRole("ADMIN", "New Customer Request", "A new customer creation request has been submitted by " + displayName + ".", "CUSTOMER_REQUEST_CREATED", "CUSTOMER_REQUEST", saved.getId());
         return map(saved);
     }
 
@@ -46,14 +44,30 @@ public class CustomerCreationRequestService {
     }
 
     public List<CustomerCreationRequestResponse> pending() {
-        return requestRepository.findByStatusOrderByCreatedAtDesc(PENDING).stream().map(this::map).toList();
+        return requestRepository.findByStatusOrderByCreatedAtDesc("PENDING_APPROVAL").stream().map(this::map).toList();
+    }
+
+    @Transactional
+    public CustomerCreationRequestResponse submitForApproval(Long id, Authentication authentication) {
+        CustomerCreationRequest request = find(id);
+        if (!request.getRequestedBy().equals(authentication.getName())) {
+            throw new AccessDeniedException("You can only submit your own customer requests");
+        }
+        requirePending(request);
+        request.setStatus("PENDING_APPROVAL");
+        CustomerCreationRequest saved = requestRepository.save(request);
+        String displayName = NotificationService.displayName(authentication);
+        notificationService.notifyRole("CHECKER", "New Customer Creation Request", "A new customer creation request has been submitted by " + displayName + ". Please review it.", "CUSTOMER_REQUEST_CREATED", "CUSTOMER_REQUEST", saved.getId());
+        notificationService.notifyRole("ADMIN", "New Customer Request", "A new customer creation request has been submitted by " + displayName + ".", "CUSTOMER_REQUEST_CREATED", "CUSTOMER_REQUEST", saved.getId());
+        return map(saved);
     }
 
     @Transactional
     public CustomerCreationRequestResponse approve(Long id, Authentication authentication) {
         CustomerCreationRequest request = find(id);
-        requirePending(request);
+        requirePendingApproval(request);
         if (!hasRole(authentication, "CHECKER") && !hasRole(authentication, "ADMIN")) throw new AccessDeniedException("Only a checker can approve customer requests");
+        if (request.getRequestedBy().equals(authentication.getName())) throw new AccessDeniedException("You cannot approve your own request");
         if (customerRepository.existsByEmailIgnoreCase(request.getEmail())) throw new IllegalStateException("A customer with this email already exists");
         Customer customer = new Customer(null, request.getName(), request.getEmail(), request.getPhone(), null, null);
         Customer saved = customerRepository.save(customer);
@@ -70,7 +84,8 @@ public class CustomerCreationRequestService {
     @Transactional
     public CustomerCreationRequestResponse reject(Long id, String reason, Authentication authentication) {
         CustomerCreationRequest request = find(id);
-        requirePending(request);
+        requirePendingApproval(request);
+        if (request.getRequestedBy().equals(authentication.getName())) throw new AccessDeniedException("You cannot reject your own request");
         if (reason == null || reason.isBlank()) throw new IllegalArgumentException("Rejection reason is required");
         request.setStatus("REJECTED");
         request.setReviewedBy(authentication.getName());
@@ -84,6 +99,7 @@ public class CustomerCreationRequestService {
 
     private CustomerCreationRequest find(Long id) { return requestRepository.findLockedById(id).orElseThrow(() -> new ResourceNotFoundException("Customer request not found")); }
     private void requirePending(CustomerCreationRequest request) { if (!PENDING.equals(request.getStatus())) throw new IllegalStateException("Request has already been processed"); }
+    private void requirePendingApproval(CustomerCreationRequest request) { if (!"PENDING_APPROVAL".equals(request.getStatus())) throw new IllegalStateException("Only requests pending approval can be processed"); }
     private boolean hasRole(Authentication authentication, String role) { return authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_" + role)); }
 
     private CustomerCreationRequestResponse map(CustomerCreationRequest request) {

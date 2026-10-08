@@ -8,13 +8,14 @@ import { ToastService } from '../../shared/services/toast.service';
 import { catchError, forkJoin, of } from 'rxjs';
 
 interface ApprovalItem {
-  kind: 'customer' | 'account';
+  kind: 'customer' | 'account' | 'transfer' | 'transaction' | 'consent';
   id: number;
   title: string;
   requestedBy: string;
   createdAt: string;
   status: string;
-  details: string;
+  detailPrimary: string;
+  detailSecondary: string;
   request: AccountRequest | any;
 }
 
@@ -46,11 +47,17 @@ export class ApprovalsComponent {
     forkJoin({
       accounts: this.api.getPendingAccountRequests().pipe(catchError(() => of([]))),
       customers: this.api.getPendingCustomerRequests().pipe(catchError(() => of([]))),
+      transfers: this.api.getPendingTransfers().pipe(catchError(() => of([]))),
+      transactions: this.api.getPendingTransactionRequests().pipe(catchError(() => of([]))),
+      consents: this.api.getPendingConsents().pipe(catchError(() => of([]))),
     }).subscribe({
-      next: ({ accounts, customers }) => {
+      next: ({ accounts, customers, transfers, transactions, consents }) => {
             this.items = [
               ...customers.map((request) => this.customerItem(request)),
               ...accounts.map((request) => this.accountItem(request)),
+              ...transfers.map((request) => this.transferItem(request)),
+              ...transactions.map((request) => this.transactionItem(request)),
+              ...consents.map((request) => this.consentItem(request)),
             ];
             this.loading = false;
             this.changeDetector.detectChanges();
@@ -70,6 +77,25 @@ export class ApprovalsComponent {
         error: (error: any) => this.toast.show(this.message(error), 'error'),
       });
       return;
+    }
+    if (item.kind === 'transfer') {
+      this.api.approveTransfer(item.id).subscribe({
+        next: () => { this.toast.show('Transfer approved.'); this.refresh(); },
+        error: (error: any) => this.toast.show(this.message(error), 'error'),
+      });
+    }
+    if (item.kind === 'transaction') {
+      this.api.approveTransactionRequest(item.id).subscribe({
+        next: () => { this.toast.show('Transaction request approved.'); this.refresh(); },
+        error: (error: any) => this.toast.show(this.message(error), 'error'),
+      });
+      return;
+    }
+    if (item.kind === 'consent') {
+      this.api.approveConsent(item.id).subscribe({
+        next: () => { this.toast.show('Consent approved.'); this.refresh(); },
+        error: (error: any) => this.toast.show(this.message(error), 'error'),
+      });
     }
   }
 
@@ -95,19 +121,60 @@ export class ApprovalsComponent {
       });
       return;
     }
+    if (item.kind === 'transfer') {
+      this.api.rejectTransfer(item.id, reason).subscribe({
+        next: () => { this.rejectingId = null; this.toast.show('Transfer rejected.'); this.refresh(); },
+        error: (error: any) => this.toast.show(this.message(error), 'error'),
+      });
+    }
+    if (item.kind === 'transaction') {
+      this.api.rejectTransactionRequest(item.id, reason).subscribe({
+        next: () => { this.rejectingId = null; this.toast.show('Transaction request rejected.'); this.refresh(); },
+        error: (error: any) => this.toast.show(this.message(error), 'error'),
+      });
+      return;
+    }
+    if (item.kind === 'consent') {
+      this.api.rejectConsent(item.id, reason).subscribe({
+        next: () => { this.rejectingId = null; this.toast.show('Consent rejected.'); this.refresh(); },
+        error: (error: any) => this.toast.show(this.message(error), 'error'),
+      });
+    }
   }
 
   private accountItem(request: AccountRequest): ApprovalItem {
     return {
       kind: 'account', id: request.id, title: 'Account request',
       requestedBy: request.reviewedByMaker ?? 'Maker', createdAt: request.requestedAt,
-      status: request.status, details: `${request.customerName} | ${request.accountType}`,
+      status: request.status, detailPrimary: request.customerName, detailSecondary: request.accountType,
       request,
     };
   }
 
   private customerItem(request: any): ApprovalItem {
-    return { kind: 'customer', id: request.id, title: 'Customer request', requestedBy: request.requestedBy, createdAt: request.createdAt, status: request.status, details: `${request.name} | ${request.email}`, request };
+    return { kind: 'customer', id: request.id, title: 'Customer request', requestedBy: request.requestedBy, createdAt: request.createdAt, status: request.status, detailPrimary: request.name, detailSecondary: request.email, request };
+  }
+
+  private transferItem(request: any): ApprovalItem {
+    return { kind: 'transfer', id: request.id, title: 'Transfer request', requestedBy: request.initiatedBy, createdAt: request.createdAt, status: request.status, detailPrimary: request.referenceNumber, detailSecondary: `₹${request.amount}`, request };
+  }
+
+  private transactionItem(request: any): ApprovalItem {
+    return { kind: 'transaction', id: request.id, title: 'Transaction request', requestedBy: request.requestedBy, createdAt: request.createdAt, status: request.status, detailPrimary: `${request.type} ${request.amount}`, detailSecondary: request.accountNumber, request };
+  }
+
+  private consentItem(request: any): ApprovalItem {
+    return {
+      kind: 'consent',
+      id: request.id,
+      title: 'Consent request',
+      requestedBy: request.requestedBy,
+      createdAt: request.requestedAt,
+      status: request.status,
+      detailPrimary: request.consentType,
+      detailSecondary: `${request.accountNumber}${request.beneficiaryName ? ' -> ' + request.beneficiaryName : ''}`,
+      request,
+    };
   }
 
   private fail(message: string): void {

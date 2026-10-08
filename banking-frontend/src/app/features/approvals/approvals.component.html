@@ -3,7 +3,7 @@
     <div>
       <p class="eyebrow">MAKER-CHECKER CONTROL</p>
       <h1>Pending Approvals</h1>
-      <p class="muted">Review customer and account requests created by Makers.</p>
+      <p class="muted">Review customer, account, transaction, and transfer requests created by Makers.</p>
     </div>
   </div>
 
@@ -20,11 +20,11 @@
       <article class="approval-item" *ngFor="let item of items">
         <div class="approval-main">
           <span class="request-id">{{ item.title }}</span>
-          <h2>{{ item.details }}</h2>
+          <h2 class="approval-title"><span>{{ item.detailPrimary }}</span><span class="approval-divider">|</span><span>{{ item.detailSecondary }}</span></h2>
           <div class="approval-details">
             <span><strong>Requested by</strong>{{ item.requestedBy }}</span>
             <span><strong>Created</strong>{{ item.createdAt | date: 'medium' }}</span>
-            <span><strong>Status</strong>{{ item.status }}</span>
+            <span><strong>Status</strong><span class="status-badge" [class.pending]="item.status.toUpperCase().includes('PENDING')" [class.approved]="item.status.toUpperCase() === 'APPROVED'" [class.rejected]="item.status.toUpperCase() === 'REJECTED'">{{ item.status.replaceAll('_', ' ') }}</span></span>
           </div>
         </div>
         <div class="approval-actions">

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { BankingApiService } from '../../core/services/banking-api.service';
-import { Transaction } from '../../core/models/transaction.model';
+import { Transaction, TransactionApprovalRequest } from '../../core/models/transaction.model';
 import { Account } from '../../core/models/account.model';
 import { Customer } from '../../core/models/customer.model';
 import { RolePermissionsService } from '../../core/services/role-permissions.service';
@@ -26,6 +26,7 @@ export class TransactionsComponent {
   private readonly toast = inject(ToastService);
   private readonly csv = inject(CsvExportService);
   transactions: Transaction[] = [];
+  transactionRequests: TransactionApprovalRequest[] = [];
   accounts: Account[] = [];
   customers: Customer[] = [];
   selectedCustomerId = 0;
@@ -72,6 +73,19 @@ export class TransactionsComponent {
           next: ({ accounts, customers }) => {
             this.customers = customers;
             this.accounts = accounts;
+            const selectedAccount = accounts.find((account) => account.id === this.accountId);
+            this.selectedCustomerId = selectedAccount?.customerId ?? 0;
+            if (this.permissions.isCustomer && !this.accountId && accounts.length) {
+              this.accountId = accounts[0].id;
+            }
+            if (this.permissions.isMaker) {
+              this.api.getTransactionRequests().subscribe({
+                next: (requests) => {
+                  this.transactionRequests = requests;
+                  this.changeDetector.detectChanges();
+                },
+              });
+            }
             if (this.accountId) this.load();
             this.changeDetector.detectChanges();
           },
@@ -88,7 +102,10 @@ export class TransactionsComponent {
       account.customerName ||
       this.customers.find((customer) => customer.id === account.customerId)?.name ||
       'Unknown holder';
-    return `${holder} | ${account.accountNumber}`;
+    const accountNumber = this.permissions.isCustomer
+      ? `••••${account.accountNumber.slice(-4)}`
+      : account.accountNumber;
+    return `${holder} | ${accountNumber}`;
   }
 
   displayType(value: string): string {
@@ -180,6 +197,25 @@ export class TransactionsComponent {
     this.saving = true;
     this.error = '';
     this.success = '';
+    if (this.permissions.isMaker) {
+      this.api.createTransactionRequest({ accountId: this.accountId, ...this.form })
+        .subscribe({
+          next: (request) => {
+            this.transactionRequests = [request, ...this.transactionRequests];
+            this.form = { amount: 0, type: '', description: '' };
+            this.success = 'Request submitted for Checker approval. The account balance has not changed.';
+            this.saving = false;
+            this.toast.show('Transaction request submitted for approval.');
+            this.changeDetector.detectChanges();
+          },
+          error: (err) => {
+            this.error = this.message(err);
+            this.saving = false;
+            this.changeDetector.detectChanges();
+          },
+        });
+      return;
+    }
     this.api
       .createTransaction(this.accountId, this.form)
       .pipe(timeout({ each: 10000 }))

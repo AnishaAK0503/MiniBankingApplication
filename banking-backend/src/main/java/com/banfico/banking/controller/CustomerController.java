@@ -25,13 +25,13 @@ public class CustomerController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('MAKER', 'CHECKER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'MAKER', 'CHECKER', 'ADMIN')")
     public List<CustomerResponse> getAllCustomers(Authentication authentication) {
         return customerService.getAllCustomers(authentication);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('MAKER', 'CHECKER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'MAKER', 'CHECKER', 'ADMIN')")
     public CustomerResponse getCustomerById(
             @PathVariable Long id, Authentication authentication) {
         return customerService.getCustomerById(id, authentication);

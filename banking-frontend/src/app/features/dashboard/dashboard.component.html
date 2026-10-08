@@ -1,125 +1,82 @@
-<div class="dashboard">
-  <div class="dashboard-header">
+<main class="dashboard" [class.customer-dashboard]="isCustomer">
+  <header class="dashboard-header">
     <div>
-      <p class="eyebrow">MINI BANKING SYSTEM</p>
-      <h1>GOOD EVENING, {{ userName }}</h1>
-      <p class="subtitle">Welcome back, {{ currentUser?.role || 'employee' }} profile.</p>
+      <p class="eyebrow">MINI BANKING / OVERVIEW</p>
+      <h1>{{ greeting }}, <span>{{ userName }}</span></h1>
+      <p class="subtitle">{{ isCustomer ? 'Your personal banking overview.' : 'A focused view of today’s banking operations.' }}</p>
     </div>
-    <div class="user-badge">{{ initials }}</div>
-  </div>
-
-  <div class="welcome-card">
-    <p class="card-label">MINI BANKING SYSTEM</p>
-    <h2>Welcome to your banking dashboard</h2>
-    <p>Manage customers, accounts, transactions and beneficiaries from one place.</p>
-  </div>
-
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon">C</div>
-      <div>
-        <p>Customers</p>
-        <h2>{{ stats.customers }}</h2>
-      </div>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-icon">A</div>
-      <div>
-        <p>Accounts</p>
-        <h2>{{ stats.accounts }}</h2>
-      </div>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-icon">T</div>
-      <div>
-        <p>Transactions</p>
-        <h2>{{ stats.transactions }}</h2>
-      </div>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-icon">B</div>
-      <div>
-        <p>Beneficiaries</p>
-        <h2>{{ stats.beneficiaries }}</h2>
-      </div>
-    </div>
-  </div>
-
-  <div class="balance-card">
-    <div>
-      <p>Total Balance</p>
-      <h2>{{ stats.balance | currency: 'INR' }}</h2>
-    </div>
-    <div class="balance-icon">₹</div>
-  </div>
+    <div class="role-pill"><span class="live-dot"></span>{{ roleLabel }} workspace</div>
+  </header>
 
   <p class="error" *ngIf="error">{{ error }}</p>
+  <p class="loading" *ngIf="loading">Loading dashboard data...</p>
 
-  <div class="section-header">
-    <div>
-      <p class="eyebrow">QUICK ACTIONS</p>
-      <h2>Manage your banking</h2>
-    </div>
-  </div>
+  <ng-container *ngIf="!loading">
+    <section class="metric-grid" *ngIf="permissions.isAdmin">
+      <article class="metric-card"><span class="metric-icon blue">C</span><div><small>Total Customers</small><strong>{{ customers.length }}</strong></div></article>
+      <article class="metric-card"><span class="metric-icon purple">A</span><div><small>Total Accounts</small><strong>{{ accounts.length }}</strong></div></article>
+      <article class="metric-card"><span class="metric-icon green">T</span><div><small>Total Transactions</small><strong>{{ transactions.length }}</strong></div></article>
+      <article class="metric-card"><span class="metric-icon amber">P</span><div><small>Pending Approvals</small><strong>{{ pendingCount }}</strong></div></article>
+    </section>
 
-  <div class="quick-actions">
-    <a routerLink="/customers" class="action-card" *ngIf="permissions.canManageCustomers">
-      <span>01</span>
-      <h3>Customers</h3>
-      <p>Manage your customers</p>
-    </a>
+    <section class="metric-grid" *ngIf="permissions.isMaker">
+      <article class="metric-card"><span class="metric-icon amber">P</span><div><small>Pending Requests</small><strong>{{ pendingCount }}</strong></div></article>
+      <article class="metric-card"><span class="metric-icon blue">N</span><div><small>Created Today</small><strong>{{ createdToday }}</strong></div></article>
+      <article class="metric-card"><span class="metric-icon red">R</span><div><small>Rejected</small><strong>{{ rejectedCount }}</strong></div></article>
+      <article class="metric-card"><span class="metric-icon green">C</span><div><small>Completed</small><strong>{{ reviewedCount }}</strong></div></article>
+    </section>
 
-    <a
-      routerLink="/accounts"
-      class="action-card"
-      *ngIf="permissions.canManageAccounts || permissions.isChecker"
-    >
-      <span>02</span>
-      <h3>Accounts</h3>
-      <p>View bank accounts</p>
-    </a>
+    <section class="metric-grid" *ngIf="permissions.isChecker">
+      <article class="metric-card"><span class="metric-icon amber">P</span><div><small>Pending Approval</small><strong>{{ pendingCount }}</strong></div></article>
+      <article class="metric-card"><span class="metric-icon green">A</span><div><small>Approved Today</small><strong>{{ approvedToday }}</strong></div></article>
+      <article class="metric-card"><span class="metric-icon red">R</span><div><small>Rejected Today</small><strong>{{ rejectedCount }}</strong></div></article>
+      <article class="metric-card"><span class="metric-icon blue">T</span><div><small>Total Reviewed</small><strong>{{ reviewedCount }}</strong></div></article>
+    </section>
 
-    <a
-      routerLink="/beneficiaries"
-      class="action-card"
-      *ngIf="permissions.canManageBeneficiaries || permissions.isChecker"
-    >
-      <span>03</span>
-      <h3>Beneficiaries</h3>
-      <p>Manage beneficiaries</p>
-    </a>
+    <section class="metric-grid" *ngIf="isCustomer">
+      <article class="metric-card"><span class="metric-icon green">₹</span><div><small>Available Balance</small><strong>{{ balance | currency:'INR' }}</strong></div></article>
+      <article class="metric-card"><span class="metric-icon blue">+</span><div><small>Total Credits</small><strong>{{ credits | currency:'INR' }}</strong></div></article>
+      <article class="metric-card"><span class="metric-icon red">−</span><div><small>Total Debits</small><strong>{{ debits | currency:'INR' }}</strong></div></article>
+      <article class="metric-card"><span class="metric-icon purple">B</span><div><small>Beneficiaries</small><strong>{{ beneficiaries.length }}</strong></div></article>
+    </section>
 
-    <a
-      routerLink="/accounts/1/transactions"
-      class="action-card"
-      *ngIf="permissions.canCreateTransactions || permissions.canReviewTransactions"
-    >
-      <span>04</span>
-      <h3>Transactions</h3>
-      <p>
-        {{
-          permissions.isMaker
-            ? 'Submit a transaction request'
-            : permissions.isChecker
-              ? 'Review transaction activity'
-              : 'View transactions'
-        }}
-      </p>
-    </a>
+    <section class="chart-grid" *ngIf="permissions.isAdmin">
+      <article class="chart-card"><div class="chart-heading"><div><small>OPERATIONS</small><h2>System Activity</h2></div><span class="chart-caption">Live records</span></div>
+        <div class="bar-chart"><div class="bar-row" *ngFor="let item of systemActivity"><span>{{ item.label }}</span><div class="bar-track"><i [style.width.%]="barWidth(item.value, systemActivity)"></i></div><b>{{ item.value }}</b></div></div>
+      </article>
+      <article class="chart-card"><div class="chart-heading"><div><small>WORKFLOW</small><h2>Transaction Status</h2></div><b class="chart-total">{{ statusTotal(transactionStatus) }}</b></div>
+        <div class="donut-layout"><div class="donut" [style.background]="statusTotal(transactionStatus) ? 'conic-gradient(#f59e0b 0 '+statusPercent(transactionStatus[0].value, transactionStatus)+'%, #22c55e '+statusPercent(transactionStatus[0].value, transactionStatus)+'% '+(statusPercent(transactionStatus[0].value, transactionStatus)+statusPercent(transactionStatus[1].value, transactionStatus))+'%, #ef4444 0)' : '#24364c'"><strong>{{ statusTotal(transactionStatus) }}</strong><small>Total</small></div><div class="legend"><span *ngFor="let item of transactionStatus"><i [style.background]="item.color"></i>{{ item.label }} <b>{{ item.value }}</b></span></div></div>
+      </article>
+    </section>
 
-    <a routerLink="/approvals" class="action-card" *ngIf="permissions.canReviewTransactions">
-      <span>05</span>
-      <h3>Pending Approvals</h3>
-      <p>Review Maker requests</p>
-    </a>
+    <section class="chart-grid single-chart" *ngIf="permissions.isMaker">
+      <article class="chart-card"><div class="chart-heading"><div><small>REQUEST MIX</small><h2>Transaction Requests</h2></div><span class="chart-caption">Current records</span></div><div class="bar-chart"><div class="bar-row" *ngFor="let item of requestActivity"><span>{{ item.label }}</span><div class="bar-track"><i [style.width.%]="barWidth(item.value, requestActivity)"></i></div><b>{{ item.value }}</b></div></div></article>
+    </section>
 
-    <a routerLink="/users" class="action-card" *ngIf="permissions.canManageUsers">
-      <span>06</span>
-      <h3>Users</h3>
-      <p>Manage application users</p>
-    </a>
-  </div>
-</div>
+    <section class="chart-grid single-chart" *ngIf="permissions.isChecker">
+      <article class="chart-card"><div class="chart-heading"><div><small>CONTROL VIEW</small><h2>Approval Status</h2></div><b class="chart-total">{{ statusTotal(approvalStatus) }}</b></div><div class="donut-layout"><div class="donut" [style.background]="'conic-gradient(#f59e0b 0 '+statusPercent(approvalStatus[0].value, approvalStatus)+'%, #22c55e '+statusPercent(approvalStatus[0].value, approvalStatus)+'% '+(statusPercent(approvalStatus[0].value, approvalStatus)+statusPercent(approvalStatus[1].value, approvalStatus))+'%, #ef4444 0)'"><strong>{{ statusTotal(approvalStatus) }}</strong><small>Total</small></div><div class="legend"><span *ngFor="let item of approvalStatus"><i [style.background]="item.color"></i>{{ item.label }} <b>{{ item.value }}</b></span></div></div></article>
+    </section>
+
+    <section class="customer-lower" *ngIf="isCustomer">
+      <article class="chart-card balance-chart"><div class="chart-heading"><div><small>PERSONAL BANKING</small><h2>Account Balance</h2></div><span class="chart-caption">Recent activity</span></div><svg viewBox="0 0 100 76" preserveAspectRatio="none" aria-label="Account balance trend"><polyline [attr.points]="balancePoints" fill="none" stroke="#3b82f6" stroke-width="2" vector-effect="non-scaling-stroke"></polyline><line x1="0" y1="71" x2="100" y2="71" stroke="#263b55" stroke-width=".6"></line></svg></article>
+      <article class="chart-card recent-card"><div class="chart-heading"><div><small>ACTIVITY</small><h2>Recent Transactions</h2></div><a routerLink="/transactions">View all</a></div><p class="empty" *ngIf="!latestTransactions.length">No transactions available yet.</p><div class="recent-row" *ngFor="let item of latestTransactions"><span>{{ item.description || readable(item.type) }}</span><b [class.debit]="item.type === 'DEBIT'">{{ item.type === 'DEBIT' ? '-' : '+' }}{{ item.amount | currency:'INR' }}</b></div></article>
+    </section>
+
+    <section class="quick-access">
+      <div class="quick-access-heading">
+        <div><small>SHORTCUTS</small><h2>Direct access</h2></div>
+        <span>Frequently used areas</span>
+      </div>
+      <div class="quick-access-grid">
+        <a class="access-card" routerLink="/customers" *ngIf="permissions.canManageCustomers"><span class="access-icon">C</span><span><strong>Customers</strong><small>Manage profiles</small></span><b>→</b></a>
+        <a class="access-card" routerLink="/accounts" *ngIf="permissions.canManageAccounts || permissions.isChecker || permissions.isCustomer"><span class="access-icon">A</span><span><strong>Accounts</strong><small>View account activity</small></span><b>→</b></a>
+        <a class="access-card" routerLink="/transactions" *ngIf="permissions.canCreateTransactions || permissions.canReviewTransactions || permissions.isCustomer"><span class="access-icon">T</span><span><strong>Transactions</strong><small>Review money movement</small></span><b>→</b></a>
+        <a class="access-card" routerLink="/transfers" *ngIf="permissions.canTransfer"><span class="access-icon">↗</span><span><strong>Transfer money</strong><small>Move funds securely</small></span><b>→</b></a>
+        <a class="access-card" routerLink="/beneficiaries" *ngIf="permissions.canManageBeneficiaries"><span class="access-icon">B</span><span><strong>Beneficiaries</strong><small>Manage recipients</small></span><b>→</b></a>
+        <a class="access-card" routerLink="/approvals" *ngIf="permissions.canReviewTransactions"><span class="access-icon">✓</span><span><strong>Approvals</strong><small>Review pending work</small></span><b>→</b></a>
+        <a class="access-card" routerLink="/consents"><span class="access-icon">✓</span><span><strong>Consents</strong><small>Manage permissions</small></span><b>→</b></a>
+        <a class="access-card" routerLink="/users" *ngIf="permissions.canManageUsers"><span class="access-icon">U</span><span><strong>Users</strong><small>Manage workspace users</small></span><b>→</b></a>
+      </div>
+    </section>
+  </ng-container>
+</main>

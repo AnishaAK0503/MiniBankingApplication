@@ -1,0 +1,68 @@
+<section class="feature-page transfer-page">
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">SECURE PAYMENTS</p>
+      <h1>Transfer Money</h1>
+      <p class="muted">Move money between your accounts or to a saved beneficiary.</p>
+    </div>
+    <a routerLink="/transactions" class="secondary-button">View transactions</a>
+  </div>
+
+  <div class="transfer-grid" *ngIf="!loading">
+    <form class="panel transfer-form" (ngSubmit)="review()" #transferForm="ngForm">
+      <h2>New transfer</h2>
+      <label>From account
+        <app-account-select [accounts]="accounts" [selectedId]="form.sourceAccountId" placeholderText="Select source account" (selectedIdChange)="form.sourceAccountId = $event"></app-account-select>
+        <div class="selected-account-card" *ngIf="sourceAccount">
+          <div class="account-card-icon">A</div>
+          <div><strong>{{ sourceAccount.customerName || 'My account' }}</strong><span>{{ sourceAccount.accountType }} · ••••{{ sourceAccount.accountNumber.slice(-4) }}</span></div>
+          <strong class="account-card-balance">₹{{ sourceAccount.balance | number:'1.2-2' }}</strong>
+        </div>
+      </label>
+      <label>Destination type
+        <select name="destinationType" [(ngModel)]="form.destinationType" (ngModelChange)="form.destinationId = 0" required>
+          <option value="beneficiary">Beneficiary</option>
+          <option value="account">My account</option>
+        </select>
+      </label>
+      <label *ngIf="form.destinationType === 'beneficiary'">Beneficiary
+        <select name="beneficiaryId" [(ngModel)]="form.destinationId" required>
+          <option [ngValue]="0" disabled>Select beneficiary</option>
+          <option *ngFor="let item of availableBeneficiaries" [ngValue]="item.id">{{ item.name }} — {{ mask(item.accountNumber) }}</option>
+          <option *ngIf="!availableBeneficiaries.length" [ngValue]="0" disabled>No beneficiaries available</option>
+        </select>
+      </label>
+      <label *ngIf="form.destinationType === 'account'">Destination account
+        <app-account-select [accounts]="destinationAccounts" [selectedId]="form.destinationId" placeholderText="Select destination account" (selectedIdChange)="form.destinationId = $event"></app-account-select>
+      </label>
+      <label>Amount
+        <input name="amount" type="number" min="0.01" step="0.01" [(ngModel)]="form.amount" required />
+      </label>
+      <label>Description <span class="optional">Optional</span>
+        <textarea name="description" rows="3" [(ngModel)]="form.description" placeholder="Monthly transfer"></textarea>
+      </label>
+      <p class="error" *ngIf="error">{{ error }}</p>
+      <button class="primary-button" type="submit" [disabled]="transferForm.invalid || saving">Review transfer</button>
+    </form>
+
+    <section class="panel transfer-history">
+      <div class="panel-heading"><div><h2>Transfer history</h2><p class="muted">Every transfer has a traceable reference.</p></div><button class="secondary-button" type="button" (click)="load()">Refresh</button></div>
+      <p class="muted" *ngIf="!transfers.length">No transfers yet.</p>
+      <div class="transfer-row" *ngFor="let transfer of transfers">
+        <div><strong>{{ transfer.referenceNumber }}</strong><span>{{ transfer.createdAt | date:'medium' }}</span></div>
+        <div><strong>₹{{ transfer.amount | number:'1.2-2' }}</strong><span>{{ transfer.status }}</span></div>
+      </div>
+    </section>
+  </div>
+</section>
+
+<div class="dialog-backdrop" *ngIf="showReview || showInsufficientBalance || showSuccess || showFailure" (click)="closeDialogs()">
+  <section class="dialog-card" (click)="$event.stopPropagation()" *ngIf="showReview">
+    <p class="eyebrow">REVIEW TRANSFER</p><h2>Confirm transfer</h2>
+    <dl><dt>From</dt><dd>{{ sourceAccount ? accountLabel(sourceAccount) : '-' }}</dd><dt>To</dt><dd>{{ beneficiary?.name || (destinationAccount ? accountLabel(destinationAccount) : '-') }}</dd><dt>Amount</dt><dd>₹{{ form.amount | number:'1.2-2' }}</dd><dt>Description</dt><dd>{{ form.description || 'No description' }}</dd></dl>
+    <div class="dialog-actions"><button class="secondary-button" type="button" (click)="closeDialogs()">Cancel</button><button class="primary-button" type="button" (click)="confirmTransfer()">Confirm transfer</button></div>
+  </section>
+  <section class="dialog-card" *ngIf="showInsufficientBalance"><p class="eyebrow danger-text">TRANSFER BLOCKED</p><h2>Insufficient balance</h2><p>You cannot transfer ₹{{ form.amount | number:'1.2-2' }}.</p><dl><dt>Available balance</dt><dd>₹{{ sourceAccount?.balance | number:'1.2-2' }}</dd><dt>Requested amount</dt><dd>₹{{ form.amount | number:'1.2-2' }}</dd></dl><button class="primary-button" type="button" (click)="closeDialogs()">OK</button></section>
+  <section class="dialog-card" *ngIf="showSuccess"><p class="eyebrow success-text">TRANSFER COMPLETE</p><h2>Transfer successful</h2><p>₹{{ completedTransfer?.amount | number:'1.2-2' }} was transferred successfully.</p><dl><dt>From</dt><dd>{{ mask(completedTransfer?.sourceAccountNumber || '') }}</dd><dt>To</dt><dd>{{ completedTransfer?.destinationCustomerName }} · {{ mask(completedTransfer?.destinationAccountNumber || '') }}</dd><dt>Reference</dt><dd class="reference">{{ completedTransfer?.referenceNumber }}</dd></dl><button class="primary-button" type="button" (click)="closeDialogs()">Done</button></section>
+  <section class="dialog-card" *ngIf="showFailure"><p class="eyebrow danger-text">TRANSFER FAILED</p><h2>Transfer failed</h2><p>{{ failureMessage }}</p><button class="primary-button" type="button" (click)="closeDialogs()">OK</button></section>
+</div>

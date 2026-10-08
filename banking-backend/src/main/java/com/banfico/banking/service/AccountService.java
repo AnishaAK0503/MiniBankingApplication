@@ -27,6 +27,8 @@ public class AccountService {
     private BankTransactionRepository transactionRepository;
     @Autowired
     private NotificationService notificationService;
+    @Autowired
+    private CustomerIdentityService customerIdentityService;
 
     public AccountResponse createAccount(AccountRequest request) {
         if (accountRepository.existsByAccountNumber(request.getAccountNumber().trim())) {
@@ -52,16 +54,29 @@ public class AccountService {
     }
 
     public List<AccountResponse> getAllAccounts(Authentication authentication) {
-        return accountRepository.findAll()
+        List<BankAccount> accounts = customerIdentityService.hasRole(authentication, "CUSTOMER")
+            ? accountRepository.findByCustomerId(customerIdentityService.currentCustomer(authentication).getId())
+            : accountRepository.findAll();
+        return accounts
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    public List<AccountResponse> getBeneficiaryAccounts(Authentication authentication) {
+        Long ownCustomerId = customerIdentityService.hasRole(authentication, "CUSTOMER")
+                ? customerIdentityService.currentCustomer(authentication).getId() : null;
+        return accountRepository.findAll().stream()
+                .filter(account -> ownCustomerId == null || !account.getCustomer().getId().equals(ownCustomerId))
+                .map(this::mapToResponse)
+                .toList();
     }
 
     public AccountResponse getAccountById(Long id, Authentication authentication) {
         BankAccount account = accountRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Account not found"));
+                customerIdentityService.requireCustomerOwner(account.getCustomer(), authentication);
         return mapToResponse(account);
     }
 

@@ -47,7 +47,7 @@
             <td>{{ request.customerName }}</td>
             <td>{{ displayType(request.accountType) }}</td>
             <td>{{ request.requestedAt | date: 'medium' }}</td>
-            <td>{{ request.status }}</td>
+            <td><span class="status-badge" [class.pending]="(request.status || '').toUpperCase().includes('PENDING')" [class.approved]="(request.status || '').toUpperCase() === 'APPROVED'" [class.rejected]="(request.status || '').toUpperCase() === 'REJECTED'">{{ (request.status || '').replaceAll('_', ' ') }}</span></td>
             <td>{{ request.remarks || '-' }}</td>
             <td>
               <button

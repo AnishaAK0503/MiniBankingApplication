@@ -12,7 +12,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/notifications")
 @CrossOrigin(origins = "http://localhost:4200")
-@PreAuthorize("hasAnyRole('ADMIN', 'MAKER', 'CHECKER')")
+@PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN', 'MAKER', 'CHECKER')")
 public class NotificationController {
     private final NotificationService service;
 

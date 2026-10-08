@@ -3,5 +3,6 @@ export interface Beneficiary {
   name: string;
   accountNumber: string;
   bankName: string;
+  ifsc: string;
   customerId: number;
 }
