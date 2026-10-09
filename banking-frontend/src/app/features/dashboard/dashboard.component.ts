@@ -76,7 +76,7 @@ export class DashboardComponent {
   get systemActivity(): BarItem[] {
     const summary = this.workspaceUsers.getRoleSummary();
     return [
-      { label: 'Customers', value: summary.customer },
+      { label: 'Customers', value: this.customers.length },
       { label: 'Makers', value: summary.maker },
       { label: 'Checkers', value: summary.checker },
       { label: 'Admins', value: summary.admin },
