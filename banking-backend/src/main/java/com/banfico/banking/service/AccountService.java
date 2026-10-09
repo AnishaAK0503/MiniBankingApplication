@@ -91,6 +91,15 @@ public class AccountService {
             throw new IllegalStateException("Account cannot be deleted while transactions exist");
         accountRepository.delete(account);
         String actor = NotificationService.displayName(authentication);
+        notificationService.notifyUser(
+                account.getCustomer().getEmail(),
+                "CUSTOMER",
+                "Account Deleted",
+                "Your account " + account.getAccountNumber() + " was deleted by " + actor
+                        + ". Reason: " + reason.trim(),
+                "ACCOUNT_DELETED",
+                "ACCOUNT",
+                id);
         notificationService.notifyRole(
                 "MAKER", "Account Deleted", "Account " + account.getAccountNumber()
                         + " was deleted by " + actor + ". Reason: " + reason.trim(),
